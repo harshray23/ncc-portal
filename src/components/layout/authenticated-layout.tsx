@@ -33,9 +33,11 @@ export default function AuthenticatedLayout({
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        console.log("Logged in:", user.uid);
         try {
           const userDocRef = doc(db, "users", user.uid);
           const userDoc = await getDoc(userDocRef);
+          console.log("User Firestore data:", userDoc.data());
 
           if (userDoc.exists()) {
             const userData = userDoc.data();

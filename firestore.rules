@@ -1,54 +1,69 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions to check user roles from their document in the 'users' collection.
-    function isRole(role) {
-      // Ensure the user is authenticated before trying to read their role.
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
-    }
-    function isAdmin() {
-      return isRole("admin");
-    }
-    function isManager() {
-      return isRole("manager");
-    }
-
-    // A user can read their own data.
-    // An admin or manager can read any user's data.
-    // An admin can update any user's data.
-    match /users/{userId} {
-      allow read: if request.auth.uid == userId || isAdmin() || isManager();
-      allow update: if request.auth.uid == userId || isAdmin();
-      // Disallow client-side creation and deletion. This is handled by secure server actions.
-      allow create, delete: if false;
-    }
-
-    // Camps can be managed by admins, but read by any authenticated user.
-    match /camps/{campId} {
-      allow read: if request.auth.uid != null;
-      allow create, update, delete: if isAdmin();
-    }
-
-    // Camp registrations can be created by the user themselves.
-    // They can be read by admins, managers, or the user who created it.
-    // They can only be deleted by an admin.
-    match /camp_registrations/{regId} {
-      allow create: if request.auth.uid == request.resource.data.cadetId;
-      allow read: if isAdmin() || isManager() || request.auth.uid == resource.data.cadetId;
-      allow delete: if isAdmin();
+    function isAuth() {
+      return request.auth != null;
     }
     
-    // Attendance can be written by admins and read by admins or managers.
-    // A user can only read their own attendance record.
+    function isRole(role) {
+      return isAuth() && request.auth.token.role == role;
+    }
+
+    function isAdmin() {
+      return isRole('admin');
+    }
+
+    function isManager() {
+      return isRole('manager');
+    }
+    
+    function isCadet() {
+      return isRole('cadet');
+    }
+
+    match /users/{userId} {
+      // Creating users is handled by a secure server action.
+      allow create: if false; 
+
+      // Admins and managers can read all user documents.
+      // A cadet can only read their own document.
+      allow read: if isAdmin() || isManager() || (isAuth() && request.auth.uid == userId);
+      
+      // Admins can update any user document (e.g., for approval).
+      // A cadet can only update their own document.
+      allow update: if isAdmin() || (isAuth() && request.auth.uid == userId);
+
+      // No one can delete user documents from the client.
+      allow delete: if false;
+    }
+    
+    // CAMPS
+    match /camps/{campId} {
+      allow create, update, delete: if isAdmin();
+      allow read: if isAuth(); // Any authenticated user can read camp details.
+    }
+
+    // CAMP REGISTRATIONS
+    match /camp_registrations/{regId} {
+      allow create: if isCadet();
+      // Admins/managers can read all registrations.
+      // A cadet can read their own registration.
+      allow read: if isAdmin() || isManager() || (isCadet() && request.auth.uid == resource.data.cadetId);
+      allow delete: if isAdmin();
+    }
+
+    // ATTENDANCE
     match /attendance/{dateId} {
-      allow write: if isAdmin();
-      match /records/{userId} {
-         allow read: if request.auth.uid == userId || isAdmin() || isManager();
-         // Only admins can create/update attendance records
-         allow write: if isAdmin();
-      }
+       allow create, update: if isAdmin();
+       allow read: if isAdmin() || isManager();
+    }
+
+    match /attendance/{dateId}/records/{userId} {
+      // Admins/managers can read all attendance records.
+      // A cadet can only read their own record.
+      allow read: if isAdmin() || isManager() || (isAuth() && request.auth.uid == userId);
+      allow create, update: if isAdmin();
     }
   }
 }
