@@ -21,7 +21,10 @@ export default function PortalSelectionPage() {
             </header>
 
             <main className="flex flex-col justify-center items-center py-12 px-4 space-y-12">
-                <div className="w-full max-w-4xl bg-background/90 backdrop-blur-sm rounded-lg p-8 shadow-2xl border border-border">
+                <div className="relative w-full max-w-4xl bg-background/90 backdrop-blur-sm rounded-lg p-8 shadow-2xl border border-border">
+                    <Link href="/login?role=manager" className="absolute top-8 right-8 text-muted-foreground hover:text-primary" title="Manager Portal">
+                        <Briefcase className="h-6 w-6" />
+                    </Link>
                     <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
                         <Image src="/ncc.png" alt="NCC Logo" width={150} height={150} className="rounded-md" />
                         <div className="text-center md:text-left">
@@ -32,7 +35,7 @@ export default function PortalSelectionPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <Card className="text-center bg-card/80 hover:shadow-lg transition-shadow">
                             <CardHeader>
                                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -44,20 +47,6 @@ export default function PortalSelectionPage() {
                             <CardContent>
                                 <Link href="/login?role=admin" className="w-full" passHref>
                                     <Button variant="outline" className="w-full">Login as Admin</Button>
-                                </Link>
-                            </CardContent>
-                        </Card>
-                         <Card className="text-center bg-card/80 hover:shadow-lg transition-shadow">
-                             <CardHeader>
-                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                                    <Briefcase className="h-8 w-8" />
-                                </div>
-                                <CardTitle className="mt-4">Manager Portal</CardTitle>
-                                <CardDescription>Monitor activities and view key reports.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <Link href="/login?role=manager" className="w-full" passHref>
-                                     <Button variant="outline" className="w-full">Login as Manager</Button>
                                 </Link>
                             </CardContent>
                         </Card>

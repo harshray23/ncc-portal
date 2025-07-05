@@ -49,27 +49,35 @@ export async function seedDatabase(prevState: any, formData: FormData) {
       usersToSeed.map(user => admin.auth().getUserByEmail(user.email).catch(() => null))
     );
 
-    const usersToCreate = usersToSeed.filter((_, index) => !existingUsers[index]);
+    const usersThatExist = existingUsers.filter(u => u !== null);
     
-    if (usersToCreate.length === 0) {
+    if (usersThatExist.length === usersToSeed.length) {
       return {
         type: "info",
         message: "Database has already been seeded. No new users were created.",
       };
     }
+    
+    if (usersThatExist.length > 0) {
+        return {
+            type: 'error',
+            message: `Some seed users already exist. Please clear the database in Firebase Console before seeding to avoid conflicts.`
+        }
+    }
+
 
     const createdUsers = await Promise.all(
-      usersToCreate.map(user => admin.auth().createUser({
+      usersToSeed.map(user => admin.auth().createUser({
         email: user.email,
         password: user.password,
         displayName: user.displayName,
-        emailVerified: true, // Ensure emails are verified for testing
+        emailVerified: true, 
       }))
     );
     
     await Promise.all(
         createdUsers.map((userRecord, index) => {
-            const user = usersToCreate[index];
+            const user = usersToSeed[index];
             return Promise.all([
                 admin.auth().setCustomUserClaims(userRecord.uid, { role: user.role }),
                 admin.firestore().collection("users").doc(userRecord.uid).set({
