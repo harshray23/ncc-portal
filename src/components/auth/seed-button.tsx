@@ -1,10 +1,10 @@
 "use client";
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
 import { seedDatabase } from '@/services/seed';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
 import { Database } from 'lucide-react';
 
 const initialState: { message: string, success: boolean } = {
@@ -23,7 +23,7 @@ function SubmitButton() {
 }
 
 export function SeedButton() {
-  const [state, formAction] = useFormState(seedDatabase, initialState);
+  const [state, formAction] = useActionState(seedDatabase, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
