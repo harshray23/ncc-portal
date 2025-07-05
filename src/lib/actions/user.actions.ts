@@ -35,6 +35,7 @@ export async function registerCadet(prevState: any, formData: FormData) {
       email,
       password,
       displayName: profileData.name,
+      emailVerified: true, // Auto-verify email for simplified testing
     });
     
     await admin.auth().setCustomUserClaims(userRecord.uid, { role: "cadet" });

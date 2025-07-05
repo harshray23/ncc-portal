@@ -63,6 +63,7 @@ export async function seedDatabase(prevState: any, formData: FormData) {
         email: user.email,
         password: user.password,
         displayName: user.displayName,
+        emailVerified: true, // Ensure emails are verified for testing
       }))
     );
     
