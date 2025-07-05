@@ -58,7 +58,7 @@ export default function ManageCampsPage() {
                         </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Manage</Button>
+                    <Button variant="ghost" size="sm" disabled>View Details</Button>
                     </TableCell>
                 </TableRow>
                 ))}

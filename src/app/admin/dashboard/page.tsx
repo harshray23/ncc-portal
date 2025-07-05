@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Flame, UserCheck, FileDown, FileUp, PlusCircle } from "lucide-react";
+import { Users, Flame, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -47,8 +47,6 @@ export default function AdminDashboard() {
                 <Link href="/admin/manage-camps" passHref>
                     <Button className="w-full" variant="outline"><Flame className="mr-2" /> Manage Camps</Button>
                 </Link>
-                 <Button className="w-full"><FileUp className="mr-2" /> Upload Cadet Data</Button>
-                 <Button className="w-full"><FileDown className="mr-2" /> Download Reports</Button>
             </CardContent>
         </Card>
         <Card className="shadow-md">

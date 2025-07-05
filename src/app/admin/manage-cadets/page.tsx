@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import type { UserProfile } from "@/lib/types";
+import * as XLSX from 'xlsx';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileDown, FileUp, PlusCircle, Search, CheckCircle2, Loader2 } from "lucide-react";
+import { FileDown, PlusCircle, Search, CheckCircle2, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -57,6 +58,24 @@ export default function ManageCadetsPage() {
     cadet.regimentalNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleDownload = () => {
+    const dataToExport = filteredCadets.map(cadet => ({
+      "Regimental Number": cadet.regimentalNumber,
+      "Name": cadet.name,
+      "Email": cadet.email,
+      "Rank": cadet.rank,
+      "Student ID": cadet.studentId,
+      "Phone": cadet.phone,
+      "WhatsApp": cadet.whatsapp,
+      "Status": cadet.approved ? 'Approved' : 'Pending',
+      "Registered At": cadet.createdAt.toLocaleDateString(),
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Cadets");
+    XLSX.writeFile(workbook, "CadetDetails.xlsx");
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -66,8 +85,7 @@ export default function ManageCadetsPage() {
             <CardDescription>View, manage, and approve cadet profiles.</CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline"><FileDown className="mr-2"/> Download CSV</Button>
-            <Button variant="outline"><FileUp className="mr-2"/> Upload CSV</Button>
+            <Button variant="outline" onClick={handleDownload}><FileDown className="mr-2"/> Download Details (XLSX)</Button>
             <Button disabled><PlusCircle className="mr-2"/> Add Cadet</Button>
           </div>
         </div>
