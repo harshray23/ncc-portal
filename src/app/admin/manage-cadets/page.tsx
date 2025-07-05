@@ -7,10 +7,13 @@ import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileDown, PlusCircle, Search, CheckCircle2, Loader2 } from "lucide-react";
+import { FileDown, PlusCircle, Search, CheckCircle2, Loader2, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+
 
 const mockCadets: UserProfile[] = [
   { uid: 'cadet-1', name: 'Ankit Sharma', email: 'ankit.sharma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123456', studentId: '20BCS1024', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
@@ -42,6 +45,8 @@ function ApproveButton({ onApprove }: { onApprove: () => void }) {
 export default function ManageCadetsPage() {
   const [cadets, setCadets] = useState<UserProfile[]>(mockCadets);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingCadet, setEditingCadet] = useState<UserProfile | null>(null);
   const { toast } = useToast();
 
   const handleApproveCadet = (uid: string) => {
@@ -51,6 +56,23 @@ export default function ManageCadetsPage() {
         )
     );
     toast({ title: "Success", description: "Cadet approved successfully." });
+  }
+  
+  const handleEditClick = (cadet: UserProfile) => {
+    setEditingCadet({ ...cadet });
+    setIsEditDialogOpen(true);
+  }
+
+  const handleSave = () => {
+    if (!editingCadet) return;
+    setCadets(currentCadets => 
+        currentCadets.map(cadet => 
+            cadet.uid === editingCadet.uid ? editingCadet : cadet
+        )
+    );
+    toast({ title: "Success", description: "Cadet details updated." });
+    setIsEditDialogOpen(false);
+    setEditingCadet(null);
   }
 
   const filteredCadets = cadets.filter(cadet => 
@@ -77,6 +99,7 @@ export default function ManageCadetsPage() {
   };
 
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
@@ -133,7 +156,7 @@ export default function ManageCadetsPage() {
                         {!cadet.approved ? (
                           <ApproveButton onApprove={() => handleApproveCadet(cadet.uid)} />
                         ) : (
-                          <Button variant="ghost" size="sm">Edit</Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleEditClick(cadet)}>Edit</Button>
                         )}
                         </TableCell>
                     </TableRow>
@@ -144,5 +167,41 @@ export default function ManageCadetsPage() {
         </div>
       </CardContent>
     </Card>
+
+    {editingCadet && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Edit Cadet: {editingCadet.name}</DialogTitle>
+                    <DialogDescription>
+                        Modify the details below and click save.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="name" className="text-right">Name</Label>
+                        <Input id="name" value={editingCadet.name} onChange={(e) => setEditingCadet({...editingCadet, name: e.target.value})} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="email" className="text-right">Email</Label>
+                        <Input id="email" value={editingCadet.email} onChange={(e) => setEditingCadet({...editingCadet, email: e.target.value})} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="rank" className="text-right">Rank</Label>
+                        <Input id="rank" value={editingCadet.rank} onChange={(e) => setEditingCadet({...editingCadet, rank: e.target.value})} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="phone" className="text-right">Phone</Label>
+                        <Input id="phone" value={editingCadet.phone} onChange={(e) => setEditingCadet({...editingCadet, phone: e.target.value})} className="col-span-3" />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSave}><Save className="mr-2 h-4 w-4" />Save Changes</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )}
+    </>
   );
 }
