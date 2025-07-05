@@ -17,11 +17,16 @@ export default function RegisterPage() {
         <CardContent>
           <RegisterForm />
         </CardContent>
-         <CardFooter className="flex-col gap-2">
+         <CardFooter className="flex-col gap-4">
             <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
                 <Link href="/login" className="font-semibold text-primary hover:underline">
                     Login here
+                </Link>
+            </p>
+            <p className="text-center text-sm text-muted-foreground">
+                <Link href="/" className="font-semibold text-primary hover:underline">
+                    &larr; Back to Portal Selection
                 </Link>
             </p>
         </CardFooter>
