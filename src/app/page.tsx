@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SeedButton } from "@/components/auth/seed-button";
 
 export default function PortalSelectionPage() {
     return (
@@ -62,9 +61,6 @@ export default function PortalSelectionPage() {
                             </CardContent>
                         </Card>
                     </div>
-                </div>
-                <div className="mt-8">
-                    <SeedButton />
                 </div>
             </main>
         </div>
