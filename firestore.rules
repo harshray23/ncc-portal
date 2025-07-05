@@ -1,8 +1,53 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
+
+    // USERS
+    match /users/{userId} {
+      allow read, update: if request.auth.uid == userId || isAdmin();
+      allow create: if true; // open for cadet registration
+      allow delete: if isAdmin();
+    }
+
+    // ADMINS only
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    function isManager() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "manager";
+    }
+
+    function isCadet() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "cadet";
+    }
+
+    // CAMPS
+    match /camps/{campId} {
+      allow create, update, delete: if isAdmin();
+      allow read: if isAdmin() || isManager() || isCadet();
+    }
+
+    // CAMP REGISTRATIONS
+    match /camp_registrations/{regId} {
+      allow create: if isCadet();
+      allow read: if isAdmin() || isManager() || (isCadet() && request.auth.uid == resource.data.cadetId);
+      allow delete: if isAdmin();
+    }
+
+    // ATTENDANCE
+    match /attendance/{dateId} {
+      allow read: if isAdmin() || isManager();
+      allow create, update: if isAdmin();
+    }
+    match /attendance/{dateId}/records/{userId} {
+      allow read: if isAdmin() || isManager() || request.auth.uid == userId;
+      allow create, update: if isAdmin();
+    }
+
+    // SYSTEM-WIDE ADMIN ONLY ACCESS
+    match /admin_only/{docId} {
+      allow read, write: if isAdmin();
     }
   }
 }

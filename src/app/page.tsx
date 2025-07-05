@@ -68,9 +68,12 @@ export default function PortalSelectionPage() {
                                 <CardTitle className="mt-4">Cadet Portal</CardTitle>
                                 <CardDescription>Access your profile and other cadet services.</CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="flex flex-col gap-2">
                                 <Link href="/login?role=cadet" className="w-full" passHref>
                                      <Button variant="outline" className="w-full">Login as Cadet</Button>
+                                </Link>
+                                <Link href="/register" className="w-full" passHref>
+                                     <Button variant="default" className="w-full">Register as Cadet</Button>
                                 </Link>
                             </CardContent>
                         </Card>
@@ -80,10 +83,8 @@ export default function PortalSelectionPage() {
                 <div className="mt-12 w-full max-w-4xl bg-background/90 backdrop-blur-sm rounded-lg p-8 shadow-2xl border border-border">
                     <div className="text-center">
                         <h2 className="text-2xl font-bold text-primary">Login Credentials</h2>
-                        <p className="text-muted-foreground mt-2">
-                            These credentials will only work if the database has been seeded previously.
-                            <br />
-                            This section should be removed in a production environment.
+                         <p className="text-muted-foreground mt-2">
+                            New cadets must register and be approved by an administrator.
                         </p>
                     </div>
                     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
@@ -93,13 +94,9 @@ export default function PortalSelectionPage() {
                             <p className="text-muted-foreground">Password: <span className="font-mono">123456</span></p>
                         </div>
                         <div className="rounded-md border p-4">
-                            <h3 className="font-semibold text-lg">Cadet</h3>
-                            <p className="mt-2 text-muted-foreground">Email: <span className="font-mono">homeharsh001@gmail.com</span></p>
-                            <p className="text-muted-foreground">Password: <span className="font-mono">147258369</span></p>
+                            <h3 className="font-semibold text-lg">Manager</h3>
+                             <p className="mt-2 text-muted-foreground">To use the Manager Portal, you can create a user in your Firebase Authentication console and then create a corresponding document in the 'users' collection with `role: "manager"`.</p>
                         </div>
-                    </div>
-                     <div className="mt-6 text-center text-sm text-muted-foreground">
-                        <p>A 'Manager' role also exists. To use the Manager Portal, you can create a user in your Firebase Authentication console and then set a custom claim of `role: "manager"`.</p>
                     </div>
                 </div>
             </main>

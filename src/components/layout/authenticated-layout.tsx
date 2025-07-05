@@ -3,7 +3,8 @@
 import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 import {
   SidebarProvider,
   Sidebar,
@@ -13,6 +14,7 @@ import {
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import type { UserRole } from '@/lib/types';
 import { ShieldCheck, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AuthenticatedLayout({
   children,
@@ -23,6 +25,7 @@ export default function AuthenticatedLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { toast } = useToast();
   const [open, setOpen] = React.useState(true);
   const [loading, setLoading] = React.useState(true);
   const [user, setUser] = React.useState<User | null>(null);
@@ -30,14 +33,58 @@ export default function AuthenticatedLayout({
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const idTokenResult = await user.getIdTokenResult();
-        const userRole = idTokenResult.claims.role;
+        try {
+          const userDocRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userDocRef);
 
-        if (userRole === role) {
-          setUser(user);
-        } else {
-          // Wrong role, redirect to login
-          router.push('/login'); 
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const userRole = userData.role;
+            const isApproved = userData.approved;
+            
+            if (userRole === role) {
+              if (role === 'cadet' && !isApproved) {
+                toast({
+                  variant: "destructive",
+                  title: "Account Not Approved",
+                  description: "Your account is pending approval from an administrator.",
+                  duration: 5000,
+                });
+                await auth.signOut();
+                router.push('/login');
+              } else {
+                setUser(user);
+              }
+            } else {
+              // Wrong role, redirect to login
+               toast({
+                  variant: "destructive",
+                  title: "Access Denied",
+                  description: "You do not have permission to access this page.",
+                  duration: 5000,
+               });
+              await auth.signOut();
+              router.push('/login');
+            }
+          } else {
+             // User doc doesn't exist, something is wrong
+            toast({
+              variant: "destructive",
+              title: "User Not Found",
+              description: "Your user profile could not be found in the database.",
+            });
+            await auth.signOut();
+            router.push('/login');
+          }
+        } catch(e) {
+            console.error("Auth check error:", e);
+            toast({
+              variant: "destructive",
+              title: "Authentication Error",
+              description: "An error occurred while verifying your credentials.",
+            });
+            await auth.signOut();
+            router.push('/login');
         }
       } else {
         // Not logged in, redirect to login
@@ -47,7 +94,7 @@ export default function AuthenticatedLayout({
     });
 
     return () => unsubscribe();
-  }, [router, role]);
+  }, [router, role, toast]);
 
 
   const getTitle = (path: string) => {
@@ -61,6 +108,7 @@ export default function AuthenticatedLayout({
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Verifying access...</p>
       </div>
     );
   }
