@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, Campfire, CheckSquare, User } from "lucide-react";
+import { ArrowRight, Flame, CheckSquare, User } from "lucide-react";
 
 const quickLinks = [
   {
@@ -20,7 +20,7 @@ const quickLinks = [
     title: "Upcoming Camps",
     description: "Explore and register for the latest camps.",
     href: "/cadet/camps",
-    icon: Campfire,
+    icon: Flame,
   },
   {
     title: "Attendance Record",

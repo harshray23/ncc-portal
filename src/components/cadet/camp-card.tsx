@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { format } from "date-fns";
-import { Campfire, MapPin, Calendar } from "lucide-react";
+import { Flame, MapPin, Calendar } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +32,7 @@ export function CampCard({ camp }: CampCardProps) {
         <CardHeader>
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Campfire className="h-6 w-6" />
+                <Flame className="h-6 w-6" />
             </div>
             <div>
                 <CardTitle className="font-headline">{camp.name}</CardTitle>

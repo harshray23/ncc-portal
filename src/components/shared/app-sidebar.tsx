@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
   User,
   CheckSquare,
-  Campfire,
+  Flame,
   Users,
   Settings,
   LogOut,
@@ -34,7 +34,7 @@ interface AppSidebarProps {
 const cadetNav = [
   { href: "/cadet/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/cadet/profile", icon: User, label: "My Profile" },
-  { href: "/cadet/camps", icon: Campfire, label: "Camps" },
+  { href: "/cadet/camps", icon: Flame, label: "Camps" },
   { href: "/cadet/attendance", icon: CheckSquare, label: "Attendance" },
 ];
 
@@ -46,7 +46,7 @@ const managerNav = [
 const adminNav = [
   { href: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/admin/manage-cadets", icon: Users, label: "Manage Cadets" },
-  { href: "/admin/manage-camps", icon: Campfire, label: "Manage Camps" },
+  { href: "/admin/manage-camps", icon: Flame, label: "Manage Camps" },
   { href: "/admin/settings", icon: Settings, label: "Settings" },
 ];
 

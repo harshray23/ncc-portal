@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Campfire, UserCheck, FileDown, FileUp, PlusCircle } from "lucide-react";
+import { Users, Flame, UserCheck, FileDown, FileUp, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const stats = [
   { title: "Total Cadets", value: "1,250", icon: Users, color: "text-blue-500" },
-  { title: "Active Camps", value: "8", icon: Campfire, color: "text-orange-500" },
+  { title: "Active Camps", value: "8", icon: Flame, color: "text-orange-500" },
   { title: "Pending Registrations", value: "42", icon: UserCheck, color: "text-green-500" },
 ];
 
@@ -45,7 +45,7 @@ export default function AdminDashboard() {
                     <Button className="w-full" variant="outline"><Users className="mr-2" /> Manage Cadets</Button>
                 </Link>
                 <Link href="/admin/manage-camps" passHref>
-                    <Button className="w-full" variant="outline"><Campfire className="mr-2" /> Manage Camps</Button>
+                    <Button className="w-full" variant="outline"><Flame className="mr-2" /> Manage Camps</Button>
                 </Link>
                  <Button className="w-full"><FileUp className="mr-2" /> Upload Cadet Data</Button>
                  <Button className="w-full"><FileDown className="mr-2" /> Download Reports</Button>
