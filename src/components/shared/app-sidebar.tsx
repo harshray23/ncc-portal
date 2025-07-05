@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
 import {
   ShieldCheck,
   LayoutDashboard,
@@ -12,9 +13,6 @@ import {
   Settings,
   LogOut,
   BarChart,
-  FileUp,
-  FileDown,
-  PlusCircle,
 } from "lucide-react";
 import {
   SidebarHeader,
@@ -59,9 +57,9 @@ const navItems = {
 };
 
 const userDetails = {
-    cadet: { name: "Cdt. Ankit Sharma", email: "ankit.sharma@example.com" },
+    cadet: { name: "Cdt. Harsh Home", email: "homeharsh001@gmail.com" },
     manager: { name: "Maj. Vikram Batra", email: "vikram.batra@example.com" },
-    admin: { name: "Col. Sunil Singh", email: "sunil.singh@example.com" },
+    admin: { name: "Col. Elvish Ray", email: "elvishray007@gmail.com" },
 }
 
 export function AppSidebar({ role }: AppSidebarProps) {
@@ -73,8 +71,9 @@ export function AppSidebar({ role }: AppSidebarProps) {
 
 
   const handleLogout = () => {
-    // Mock logout
-    router.push("/");
+    auth.signOut().then(() => {
+        router.push("/");
+    });
   };
 
   return (

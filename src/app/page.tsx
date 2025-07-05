@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SeedButton } from "@/components/auth/seed-button";
 
 export default function PortalSelectionPage() {
     return (
@@ -19,7 +20,7 @@ export default function PortalSelectionPage() {
                 </div>
             </header>
 
-            <main className="flex justify-center items-center py-12 px-4">
+            <main className="flex flex-col justify-center items-center py-12 px-4">
                 <div className="w-full max-w-4xl bg-background/90 backdrop-blur-sm rounded-lg p-8 shadow-2xl border border-border">
                     <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
                         <Image src="/ncc.png" alt="NCC Logo" width={150} height={150} className="rounded-md" />
@@ -41,7 +42,7 @@ export default function PortalSelectionPage() {
                                 <CardDescription>Manage registrations and administrative tasks.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Link href="/admin/dashboard" className="w-full" passHref>
+                                <Link href="/login?role=admin" className="w-full" passHref>
                                     <Button variant="outline" className="w-full">Login as Admin</Button>
                                 </Link>
                             </CardContent>
@@ -55,12 +56,15 @@ export default function PortalSelectionPage() {
                                 <CardDescription>Access your profile and other cadet services.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Link href="/cadet/dashboard" className="w-full" passHref>
+                                <Link href="/login?role=cadet" className="w-full" passHref>
                                      <Button variant="outline" className="w-full">Login as Cadet</Button>
                                 </Link>
                             </CardContent>
                         </Card>
                     </div>
+                </div>
+                <div className="mt-8">
+                    <SeedButton />
                 </div>
             </main>
         </div>

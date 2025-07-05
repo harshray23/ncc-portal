@@ -1,17 +1,19 @@
 export type UserRole = "cadet" | "admin" | "manager";
 
 export interface UserProfile {
+  uid: string;
+  role: UserRole;
   name: string;
   email: string;
-  regimentalNumber: string;
-  studentId: string;
-  rank: string;
-  unit: string;
+  regimentalNumber?: string;
+  studentId?: string;
+  rank?: string;
+  unit?: string;
 }
 
 export interface Camp {
   id: string;
-  name: string;
+  name:string;
   location: string;
   startDate: Date;
   endDate: Date;

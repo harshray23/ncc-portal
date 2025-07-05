@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
+import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,25 +19,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import type { UserRole } from "@/lib/types";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters." }),
-  role: z.enum(["cadet", "manager", "admin"]),
+    .min(1, { message: "Password is required." }),
 });
 
-export function LoginForm() {
+function LoginFormComponent() {
   const router = useRouter();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -44,17 +40,20 @@ export function LoginForm() {
     defaultValues: {
       email: "",
       password: "",
-      role: "cadet",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      const role = values.role as UserRole;
-      switch (role) {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+      const idTokenResult = await user.getIdTokenResult();
+      const userRole = idTokenResult.claims.role as UserRole;
+
+      toast({ title: "Login Successful", description: "Redirecting..." });
+      
+      switch (userRole) {
         case "admin":
           router.push("/admin/dashboard");
           break;
@@ -62,11 +61,29 @@ export function LoginForm() {
           router.push("/manager/dashboard");
           break;
         case "cadet":
-        default:
           router.push("/cadet/dashboard");
           break;
+        default:
+          // Fallback if role is not set or recognized
+          router.push("/");
+          break;
       }
-    }, 1000);
+    } catch (error: any) {
+      console.error(error);
+      let errorMessage = "An unknown error occurred.";
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        errorMessage = "Invalid email or password. Please try again.";
+      } else {
+        errorMessage = error.message;
+      }
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -105,32 +122,10 @@ export function LoginForm() {
                     className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? <EyeOff /> : <Eye />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="role"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Role</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your role" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="cadet">Cadet</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -142,4 +137,12 @@ export function LoginForm() {
       </form>
     </Form>
   );
+}
+
+export function LoginForm() {
+  return (
+    <Suspense>
+      <LoginFormComponent />
+    </Suspense>
+  )
 }

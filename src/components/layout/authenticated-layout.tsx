@@ -1,17 +1,18 @@
 "use client";
 
 import * as React from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { onAuthStateChanged, type User } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import {
   SidebarProvider,
   Sidebar,
   SidebarInset,
-  SidebarHeader,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import type { UserRole } from '@/lib/types';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Loader2 } from 'lucide-react';
 
 export default function AuthenticatedLayout({
   children,
@@ -21,15 +22,53 @@ export default function AuthenticatedLayout({
   role: UserRole;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = React.useState(true);
+  const [loading, setLoading] = React.useState(true);
+  const [user, setUser] = React.useState<User | null>(null);
 
-  // This is a simple way to derive a title from the pathname
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const idTokenResult = await user.getIdTokenResult();
+        const userRole = idTokenResult.claims.role;
+
+        if (userRole === role) {
+          setUser(user);
+        } else {
+          // Wrong role, redirect to login
+          router.push('/login'); 
+        }
+      } else {
+        // Not logged in, redirect to login
+        router.push('/login');
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [router, role]);
+
+
   const getTitle = (path: string) => {
     const segments = path.split('/').filter(Boolean);
     if (segments.length === 0) return 'Dashboard';
     const lastSegment = segments[segments.length - 1];
     return lastSegment.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
+  
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    // This case is handled by the redirect, but as a fallback to prevent rendering children.
+    return null; 
+  }
 
   return (
     <SidebarProvider defaultOpen open={open} onOpenChange={setOpen}>
