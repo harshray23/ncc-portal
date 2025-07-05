@@ -1,5 +1,6 @@
-import { ShieldCheck } from "lucide-react";
-import { LoginForm } from "@/components/auth/login-form";
+import { Shield, User } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -7,32 +8,61 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
-export default function LoginPage() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <Card className="shadow-2xl">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <ShieldCheck className="h-8 w-8" />
-            </div>
-            <CardTitle className="font-headline text-3xl">CadetLink</CardTitle>
-            <CardDescription>
-              Secure login for Cadets, Management, and Admins.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <LoginForm />
-          </CardContent>
-        </Card>
-      </div>
-      <footer className="mt-8 text-center text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} CadetLink. All rights reserved.</p>
-        <p className="mt-1">
-          A modern solution for National Cadet Corps units.
-        </p>
-      </footer>
-    </main>
-  );
+export default function PortalSelectionPage() {
+    return (
+        <div className="min-h-screen bg-cover bg-center">
+            <header className="py-2 bg-black/20 backdrop-blur-sm">
+                <div className="container mx-auto flex justify-center items-center">
+                     <Image src="https://placehold.co/120x40.png" alt="NCC Logo" width={120} height={40} data-ai-hint="NCC logo" />
+                </div>
+            </header>
+
+            <main className="flex justify-center items-center py-12 px-4">
+                <div className="w-full max-w-4xl bg-background/90 backdrop-blur-sm rounded-lg p-8 shadow-2xl border border-border">
+                    <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
+                        <Image src="https://placehold.co/150x150.png" alt="Cadet" width={150} height={150} className="rounded-md" data-ai-hint="cadet illustration" />
+                        <div className="text-center md:text-left">
+                            <h1 className="text-4xl font-bold text-primary">Welcome to NCC Portal</h1>
+                            <p className="text-lg text-foreground mt-2">10 Bengal Battalion</p>
+                            <p className="text-lg text-accent font-semibold">Asansol Engineering College</p>
+                            <p className="text-muted-foreground mt-4">Please select your portal to continue.</p>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <Card className="text-center bg-card/80 hover:shadow-lg transition-shadow">
+                            <CardHeader>
+                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                    <Shield className="h-8 w-8" />
+                                </div>
+                                <CardTitle className="mt-4">Admin Portal</CardTitle>
+                                <CardDescription>Manage registrations and administrative tasks.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Link href="/admin/dashboard" className="w-full" passHref>
+                                    <Button variant="outline" className="w-full">Login as Admin</Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+                        <Card className="text-center bg-card/80 hover:shadow-lg transition-shadow">
+                             <CardHeader>
+                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                    <User className="h-8 w-8" />
+                                </div>
+                                <CardTitle className="mt-4">Cadet Portal</CardTitle>
+                                <CardDescription>Access your profile and other cadet services.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Link href="/cadet/dashboard" className="w-full" passHref>
+                                     <Button variant="outline" className="w-full">Login as Cadet</Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
 }
