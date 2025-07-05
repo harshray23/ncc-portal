@@ -84,6 +84,6 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-    background-image: url('https://www.transparenttextures.com/patterns/camouflage.png');
+    background-image: url('/camo-pattern.png');
   }
 }

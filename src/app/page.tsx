@@ -13,16 +13,16 @@ import { Button } from "@/components/ui/button";
 export default function PortalSelectionPage() {
     return (
         <div className="min-h-screen bg-cover bg-center">
-            <header className="py-2 bg-black/20 backdrop-blur-sm">
+            <header className="py-4 bg-black/20 backdrop-blur-sm">
                 <div className="container mx-auto flex justify-center items-center">
-                     <Image src="https://placehold.co/120x40.png" alt="NCC Logo" width={120} height={40} data-ai-hint="NCC logo" />
+                     <Image src="/emblem.avif" alt="NCC Emblem" width={100} height={100} />
                 </div>
             </header>
 
             <main className="flex justify-center items-center py-12 px-4">
                 <div className="w-full max-w-4xl bg-background/90 backdrop-blur-sm rounded-lg p-8 shadow-2xl border border-border">
                     <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
-                        <Image src="https://placehold.co/150x150.png" alt="Cadet" width={150} height={150} className="rounded-md" data-ai-hint="cadet illustration" />
+                        <Image src="/ncc.png" alt="NCC Logo" width={150} height={150} className="rounded-md" />
                         <div className="text-center md:text-left">
                             <h1 className="text-4xl font-bold text-primary">Welcome to NCC Portal</h1>
                             <p className="text-lg text-foreground mt-2">10 Bengal Battalion</p>
