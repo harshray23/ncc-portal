@@ -1,10 +1,11 @@
 'use server';
 
-import admin from '@/lib/firebase-admin';
 import type { UserProfile } from '@/lib/types';
 
 export async function seedDatabase() {
   try {
+    // Dynamically import admin to catch initialization errors
+    const admin = (await import('@/lib/firebase-admin')).default;
     const db = admin.firestore();
     const auth = admin.auth();
 
