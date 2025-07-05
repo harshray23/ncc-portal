@@ -5,9 +5,9 @@ import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const stats = [
-  { title: "Total Cadets", value: "1,250", icon: Users, color: "text-blue-500" },
+  { title: "Total Cadets", value: "4", icon: Users, color: "text-blue-500" },
   { title: "Active Camps", value: "8", icon: Flame, color: "text-orange-500" },
-  { title: "Pending Registrations", value: "42", icon: UserCheck, color: "text-green-500" },
+  { title: "Pending Registrations", value: "2", icon: UserCheck, color: "text-green-500" },
 ];
 
 const recentActivities = [
@@ -29,7 +29,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">Updated just now</p>
+              <p className="text-xs text-muted-foreground">Based on mock data</p>
             </CardContent>
           </Card>
         ))}
