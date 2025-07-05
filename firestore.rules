@@ -1,25 +1,31 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // USERS
-    match /users/{userId} {
-      allow read, update: if request.auth.uid == userId || isAdmin();
-      allow create: if true; // open for cadet registration
-      allow delete: if isAdmin();
-    }
-
-    // ADMINS only
+    // Helper Functions
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      return request.auth.uid != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
     function isManager() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "manager";
+      return request.auth.uid != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "manager";
     }
 
     function isCadet() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "cadet";
+      return request.auth.uid != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "cadet";
+    }
+
+    // USERS
+    match /users/{userId} {
+      // Admins and Managers can read any user's data. Cadets can only read their own.
+      allow read: if isAdmin() || isManager() || request.auth.uid == userId;
+      // Cadets can update their own data. Admins can update any data.
+      allow update: if isAdmin() || request.auth.uid == userId;
+      // Anyone can create a user for registration.
+      allow create: if true;
+      // Nobody can delete users from the client.
+      allow delete: if false;
     }
 
     // CAMPS
@@ -31,6 +37,7 @@ service cloud.firestore {
     // CAMP REGISTRATIONS
     match /camp_registrations/{regId} {
       allow create: if isCadet();
+      // Admins/Managers can read all. Cadets can read their own registration.
       allow read: if isAdmin() || isManager() || (isCadet() && request.auth.uid == resource.data.cadetId);
       allow delete: if isAdmin();
     }
@@ -39,15 +46,11 @@ service cloud.firestore {
     match /attendance/{dateId} {
       allow read: if isAdmin() || isManager();
       allow create, update: if isAdmin();
-    }
-    match /attendance/{dateId}/records/{userId} {
-      allow read: if isAdmin() || isManager() || request.auth.uid == userId;
-      allow create, update: if isAdmin();
-    }
-
-    // SYSTEM-WIDE ADMIN ONLY ACCESS
-    match /admin_only/{docId} {
-      allow read, write: if isAdmin();
+        
+      match /records/{userId} {
+        allow read: if isAdmin() || isManager() || request.auth.uid == userId;
+        allow create, update: if isAdmin();
+      }
     }
   }
 }
