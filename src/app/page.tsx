@@ -1,4 +1,4 @@
-import { Shield, User, Briefcase, Database } from "lucide-react";
+import { Shield, User, Briefcase } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -9,8 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SeedButton } from "@/components/auth/seed-button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 export default function PortalSelectionPage() {
@@ -80,39 +78,6 @@ export default function PortalSelectionPage() {
                                 </Link>
                             </CardContent>
                         </Card>
-                    </div>
-                </div>
-
-                <div className="w-full max-w-4xl bg-background/90 backdrop-blur-sm rounded-lg p-8 shadow-2xl border border-border">
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold text-primary">First-Time Setup</h2>
-                         <p className="text-muted-foreground mt-2 mb-6">
-                            If this is your first time running the app, click the button below to seed the database with test users. <br/>
-                            You must have your Firebase Admin credentials configured in the <strong>.env</strong> file for this to work.
-                        </p>
-                        <div className="max-w-sm mx-auto">
-                            <SeedButton />
-                        </div>
-                    </div>
-                    <div className="mt-8 text-center">
-                        <h2 className="text-2xl font-bold text-primary">Login Credentials</h2>
-                         <p className="text-muted-foreground mt-2">
-                            Use these credentials to log in after seeding the database. The password for all accounts is: <span className="font-mono text-accent">password123</span>
-                        </p>
-                    </div>
-                    <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-                        <div className="rounded-md border p-4">
-                            <h3 className="font-semibold text-lg">Admin</h3>
-                            <p className="mt-2 text-muted-foreground">Email: <span className="font-mono">elvishray007@gmail.com</span></p>
-                        </div>
-                        <div className="rounded-md border p-4">
-                            <h3 className="font-semibold text-lg">Manager</h3>
-                             <p className="mt-2 text-muted-foreground">Email: <span className="font-mono">harshray2007@gmail.com</span></p>
-                        </div>
-                         <div className="rounded-md border p-4">
-                            <h3 className="font-semibold text-lg">Cadet</h3>
-                             <p className="mt-2 text-muted-foreground">Email: <span className="font-mono">homeharshit001@gmail.com</span></p>
-                        </div>
                     </div>
                 </div>
             </main>
