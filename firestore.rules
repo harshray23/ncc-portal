@@ -3,72 +3,52 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper Functions
-    function isApproved() {
-      // Check for document existence before trying to access data
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.approved == true;
+    // Helper functions to check user roles from their document in the 'users' collection.
+    function isRole(role) {
+      // Ensure the user is authenticated before trying to read their role.
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
     }
-
     function isAdmin() {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      return isRole("admin");
     }
-
     function isManager() {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "manager" && 
-             isApproved();
+      return isRole("manager");
     }
 
-    function isCadet() {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "cadet" && 
-             isApproved();
-    }
-
-    // USERS
+    // A user can read their own data.
+    // An admin or manager can read any user's data.
+    // An admin can update any user's data.
     match /users/{userId} {
-      // Admins/Managers can view all profiles, users can only view their own.
-      allow read: if isAdmin() || isManager() || request.auth.uid == userId;
-      
-      // Admins can update any profile (e.g., for approval), users can update their own.
-      allow update: if isAdmin() || request.auth.uid == userId;
-      
-      // Anyone can create a user document during registration.
-      allow create: if request.auth != null;
-      
-      // No one can delete user documents from the client.
-      allow delete: if false;
+      allow read: if request.auth.uid == userId || isAdmin() || isManager();
+      allow update: if request.auth.uid == userId || isAdmin();
+      // Disallow client-side creation and deletion. This is handled by secure server actions.
+      allow create, delete: if false;
     }
 
-    // CAMPS
+    // Camps can be managed by admins, but read by any authenticated user.
     match /camps/{campId} {
+      allow read: if request.auth.uid != null;
       allow create, update, delete: if isAdmin();
-      allow read: if isAdmin() || isManager() || isCadet();
     }
 
-    // CAMP REGISTRATIONS
+    // Camp registrations can be created by the user themselves.
+    // They can be read by admins, managers, or the user who created it.
+    // They can only be deleted by an admin.
     match /camp_registrations/{regId} {
-      allow create: if isCadet();
-      // Admins/Managers can read all registrations. Cadets can only read their own.
-      allow read: if isAdmin() || isManager() || (isCadet() && request.auth.uid == resource.data.cadetId);
+      allow create: if request.auth.uid == request.resource.data.cadetId;
+      allow read: if isAdmin() || isManager() || request.auth.uid == resource.data.cadetId;
       allow delete: if isAdmin();
     }
-
-    // ATTENDANCE
+    
+    // Attendance can be written by admins and read by admins or managers.
+    // A user can only read their own attendance record.
     match /attendance/{dateId} {
-        allow read, write: if isAdmin() || isManager();
-
-        match /records/{userId} {
-          allow read: if isAdmin() || isManager() || request.auth.uid == userId;
-          allow create, update: if isAdmin();
-        }
-    }
-
-    // SYSTEM-WIDE ADMIN ONLY ACCESS
-    match /admin_only/{docId} {
-      allow read, write: if isAdmin();
+      allow write: if isAdmin();
+      match /records/{userId} {
+         allow read: if request.auth.uid == userId || isAdmin() || isManager();
+         // Only admins can create/update attendance records
+         allow write: if isAdmin();
+      }
     }
   }
 }
