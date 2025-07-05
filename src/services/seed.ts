@@ -80,7 +80,12 @@ export async function seedDatabase() {
   } catch (error: any)
    {
     console.error('Seeding error:', error);
-    const message = error instanceof Error ? error.message : 'An unknown error occurred';
-    return { success: false, message: `An error occurred: ${message}` };
+    let message = error instanceof Error ? error.message : 'An unknown error occurred';
+    if (message.includes('Invalid PEM formatted message') || message.includes('Failed to parse private key')) {
+        message = 'Failed to parse Firebase private key. Please ensure FIREBASE_PRIVATE_KEY in your .env file is wrapped in double quotes and contains the correct `\\n` newline characters.';
+    } else {
+       message = `An error occurred: ${message}`;
+    }
+    return { success: false, message };
   }
 }
