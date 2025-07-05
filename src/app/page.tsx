@@ -1,4 +1,4 @@
-import { Shield, User } from "lucide-react";
+import { Shield, User, Briefcase } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -31,7 +31,7 @@ export default function PortalSelectionPage() {
                         </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <Card className="text-center bg-card/80 hover:shadow-lg transition-shadow">
                             <CardHeader>
                                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -43,6 +43,20 @@ export default function PortalSelectionPage() {
                             <CardContent>
                                 <Link href="/login?role=admin" className="w-full" passHref>
                                     <Button variant="outline" className="w-full">Login as Admin</Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+                         <Card className="text-center bg-card/80 hover:shadow-lg transition-shadow">
+                             <CardHeader>
+                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                    <Briefcase className="h-8 w-8" />
+                                </div>
+                                <CardTitle className="mt-4">Manager Portal</CardTitle>
+                                <CardDescription>Monitor activities and view key reports.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Link href="/login?role=manager" className="w-full" passHref>
+                                     <Button variant="outline" className="w-full">Login as Manager</Button>
                                 </Link>
                             </CardContent>
                         </Card>
@@ -60,6 +74,32 @@ export default function PortalSelectionPage() {
                                 </Link>
                             </CardContent>
                         </Card>
+                    </div>
+                </div>
+
+                <div className="mt-12 w-full max-w-4xl bg-background/90 backdrop-blur-sm rounded-lg p-8 shadow-2xl border border-border">
+                    <div className="text-center">
+                        <h2 className="text-2xl font-bold text-primary">Login Credentials</h2>
+                        <p className="text-muted-foreground mt-2">
+                            These credentials will only work if the database has been seeded previously.
+                            <br />
+                            This section should be removed in a production environment.
+                        </p>
+                    </div>
+                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                        <div className="rounded-md border p-4">
+                            <h3 className="font-semibold text-lg">Admin</h3>
+                            <p className="mt-2 text-muted-foreground">Email: <span className="font-mono">elvishray007@gmail.com</span></p>
+                            <p className="text-muted-foreground">Password: <span className="font-mono">123456</span></p>
+                        </div>
+                        <div className="rounded-md border p-4">
+                            <h3 className="font-semibold text-lg">Cadet</h3>
+                            <p className="mt-2 text-muted-foreground">Email: <span className="font-mono">homeharsh001@gmail.com</span></p>
+                            <p className="text-muted-foreground">Password: <span className="font-mono">147258369</span></p>
+                        </div>
+                    </div>
+                     <div className="mt-6 text-center text-sm text-muted-foreground">
+                        <p>A 'Manager' role also exists. To use the Manager Portal, you can create a user in your Firebase Authentication console and then set a custom claim of `role: "manager"`.</p>
                     </div>
                 </div>
             </main>
