@@ -1,7 +1,6 @@
 "use server";
 
 import { z } from "zod";
-import admin from "@/lib/firebase-admin";
 import { revalidatePath } from "next/cache";
 
 const registerSchema = z.object({
@@ -28,30 +27,14 @@ export async function registerCadet(prevState: any, formData: FormData) {
     };
   }
   
-  const { email, password, ...profileData } = validatedFields.data;
-
   try {
-    const userRecord = await admin.auth().createUser({
-      email,
-      password,
-      displayName: profileData.name,
-      emailVerified: true, // Auto-verify email for simplified testing
-    });
-    
-    await admin.auth().setCustomUserClaims(userRecord.uid, { role: "cadet" });
-
-    await admin.firestore().collection("users").doc(userRecord.uid).set({
-      uid: userRecord.uid,
-      email,
-      ...profileData,
-      role: "cadet",
-      approved: false,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    // NOTE: Firebase Admin SDK calls are disabled for mock data mode.
+    // This action simulates a successful registration without creating a real user.
+    console.log("Mock registration for:", validatedFields.data.email);
 
     return {
       type: "success",
-      message: "Registration successful! An admin will approve your account shortly.",
+      message: "Registration successful! An admin will approve your account shortly (mock response).",
     };
 
   } catch (error: any) {
@@ -69,13 +52,12 @@ export async function registerCadet(prevState: any, formData: FormData) {
 
 export async function approveCadet(uid: string) {
     try {
-        await admin.firestore().collection('users').doc(uid).update({
-            approved: true,
-        });
+        // NOTE: Firebase Admin SDK calls are disabled for mock data mode.
+        console.log("Mock approving cadet:", uid);
         revalidatePath('/admin/manage-cadets');
-        return { success: true, message: 'Cadet approved successfully.' };
+        return { success: true, message: 'Cadet approved successfully (mock response).' };
     } catch (error) {
         console.error('Error approving cadet:', error);
-        return { success: false, message: 'Failed to approve cadet.' };
+        return { success: false, message: 'Failed to approve cadet (mock response).' };
     }
 }

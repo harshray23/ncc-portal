@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import type { UserRole } from "@/lib/types";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }),
@@ -47,28 +46,28 @@ function LoginFormComponent() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-      const user = userCredential.user;
-      const idTokenResult = await user.getIdTokenResult();
-      const userRole = idTokenResult.claims.role as UserRole;
-
+      await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({ title: "Login Successful", description: "Redirecting..." });
       
-      switch (userRole) {
-        case "admin":
-          router.push("/admin/dashboard");
+      // Mock role-based redirection based on email
+      let path = "/";
+      switch (values.email) {
+        case "elvishray007@gmail.com":
+          path = "/admin/dashboard";
           break;
-        case "manager":
-          router.push("/manager/dashboard");
+        case "harshray2007@gmail.com":
+          path = "/manager/dashboard";
           break;
-        case "cadet":
-          router.push("/cadet/dashboard");
+        case "homeharshit001@gmail.com":
+          path = "/cadet/dashboard";
           break;
         default:
-          // Fallback if role is not set or recognized
-          router.push("/");
+          // Default to cadet dashboard for any other valid login
+          path = "/cadet/dashboard";
           break;
       }
+      router.push(path);
+
     } catch (error: any) {
       console.error(error);
       let errorMessage = "An unknown error occurred.";
