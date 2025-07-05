@@ -23,6 +23,7 @@ const mockProfile: UserProfile = {
   email: "homeharshit001@gmail.com",
   role: 'cadet',
   regimentalNumber: "PB20SDA123457",
+  regimentalNumberEditCount: 0,
   studentId: "20BCS1025",
   rank: "Cadet",
   unit: "10 Bengal Battalion",
@@ -41,13 +42,22 @@ export default function ProfilePage() {
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setProfile((prev) => ({ ...prev, [id]: value }));
+    setProfile((prev) => ({ ...prev, [id]: value } as UserProfile));
   };
   
   const handleSave = async () => {
-    // In a real app, this would write to Firestore. For now, it just updates local state.
+    let updatedProfile = { ...profile };
+    if (profile.regimentalNumber !== initialData.regimentalNumber) {
+        if ((initialData.regimentalNumberEditCount || 0) < 2) {
+            updatedProfile.regimentalNumberEditCount = (initialData.regimentalNumberEditCount || 0) + 1;
+        } else {
+             updatedProfile.regimentalNumber = initialData.regimentalNumber; // Revert
+        }
+    }
+    
+    setProfile(updatedProfile);
     toast({ title: "Success", description: "Profile updated successfully." });
-    setInitialData(profile);
+    setInitialData(updatedProfile);
     setIsEditing(false);
   };
   
@@ -83,8 +93,13 @@ export default function ProfilePage() {
             <Input id="email" type="email" value={profile.email} onChange={handleInputChange} disabled={!isEditing} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="regimentalNumber">Regimental Number</Label>
-            <Input id="regimentalNumber" value={profile.regimentalNumber} disabled />
+            <Label htmlFor="regimentalNumber">
+                Regimental Number
+                 <span className="text-xs text-muted-foreground ml-2">
+                    ({(profile.regimentalNumberEditCount ?? 0) < 2 ? `${2 - (profile.regimentalNumberEditCount ?? 0)} edits remaining` : 'No edits remaining'})
+                </span>
+            </Label>
+            <Input id="regimentalNumber" value={profile.regimentalNumber}  onChange={handleInputChange} disabled={!isEditing || (profile.regimentalNumberEditCount ?? 0) >= 2} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="studentId">Student ID</Label>

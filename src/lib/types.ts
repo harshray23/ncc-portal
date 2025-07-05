@@ -6,6 +6,7 @@ export interface UserProfile {
   name: string;
   email: string;
   regimentalNumber: string;
+  regimentalNumberEditCount?: number;
   studentId: string;
   rank: string;
   unit?: string;

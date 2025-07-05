@@ -16,10 +16,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 
 
 const mockCadets: UserProfile[] = [
-  { uid: 'cadet-1', name: 'Ankit Sharma', email: 'ankit.sharma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123456', studentId: '20BCS1024', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
-  { uid: 'cadet-2', name: 'Priya Verma', email: 'priya.verma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123457', studentId: '20BCS1025', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: false, createdAt: new Date() },
-  { uid: 'cadet-3', name: 'Rahul Singh', email: 'rahul.singh@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123458', studentId: '20BCS1026', rank: 'Lance Corporal', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
-  { uid: 'cadet-4', name: 'Sneha Gupta', email: 'sneha.gupta@example.com', role: 'cadet', regimentalNumber: 'PB20SWA987654', studentId: '20BCS1027', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: false, createdAt: new Date() },
+  { uid: 'cadet-1', name: 'Ankit Sharma', email: 'ankit.sharma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123456', regimentalNumberEditCount: 0, studentId: '20BCS1024', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
+  { uid: 'cadet-2', name: 'Priya Verma', email: 'priya.verma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123457', regimentalNumberEditCount: 1, studentId: '20BCS1025', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: false, createdAt: new Date() },
+  { uid: 'cadet-3', name: 'Rahul Singh', email: 'rahul.singh@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123458', regimentalNumberEditCount: 0, studentId: '20BCS1026', rank: 'Lance Corporal', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
+  { uid: 'cadet-4', name: 'Sneha Gupta', email: 'sneha.gupta@example.com', role: 'cadet', regimentalNumber: 'PB20SWA987654', regimentalNumberEditCount: 2, studentId: '20BCS1027', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: false, createdAt: new Date() },
 ];
 
 
@@ -65,9 +65,21 @@ export default function ManageCadetsPage() {
 
   const handleSave = () => {
     if (!editingCadet) return;
+
+    const originalCadet = cadets.find(c => c.uid === editingCadet.uid);
+    let finalCadet = { ...editingCadet };
+
+    if (originalCadet && editingCadet.regimentalNumber !== originalCadet.regimentalNumber) {
+        if ((originalCadet.regimentalNumberEditCount || 0) < 2) {
+            finalCadet.regimentalNumberEditCount = (originalCadet.regimentalNumberEditCount || 0) + 1;
+        } else {
+            finalCadet.regimentalNumber = originalCadet.regimentalNumber; // Revert if somehow edited
+        }
+    }
+
     setCadets(currentCadets => 
         currentCadets.map(cadet => 
-            cadet.uid === editingCadet.uid ? editingCadet : cadet
+            cadet.uid === finalCadet.uid ? finalCadet : cadet
         )
     );
     toast({ title: "Success", description: "Cadet details updated." });
@@ -185,6 +197,24 @@ export default function ManageCadetsPage() {
                      <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="email" className="text-right">Email</Label>
                         <Input id="email" value={editingCadet.email} onChange={(e) => setEditingCadet({...editingCadet, email: e.target.value})} className="col-span-3" />
+                    </div>
+                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="regimentalNumber" className="text-right">
+                            Regimental No.
+                        </Label>
+                        <div className="col-span-3">
+                            <Input 
+                                id="regimentalNumber" 
+                                value={editingCadet.regimentalNumber} 
+                                onChange={(e) => setEditingCadet({...editingCadet, regimentalNumber: e.target.value})}
+                                disabled={(editingCadet.regimentalNumberEditCount ?? 0) >= 2}
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                                {(editingCadet.regimentalNumberEditCount ?? 0) < 2
+                                ? `${2 - (editingCadet.regimentalNumberEditCount ?? 0)} edits remaining.`
+                                : "No edits remaining."}
+                            </p>
+                        </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="rank" className="text-right">Rank</Label>
