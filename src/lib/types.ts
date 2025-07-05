@@ -8,6 +8,7 @@ export interface UserProfile {
   regimentalNumber: string;
   studentId: string;
   rank: string;
+  unit?: string;
   phone: string;
   whatsapp: string;
   approved: boolean;
@@ -20,11 +21,9 @@ export interface Camp {
   title: string;
   description: string;
   location: string;
-  startDate: any; // Firestore Timestamp
-  endDate: any; // Firestore Timestamp
-  linkId: string;
-  createdBy: string; // Admin's UID
-  createdAt: any; // Firestore Timestamp
+  startDate: Date;
+  endDate: Date;
+  registrationLink: string;
 }
 
 export interface CampRegistration {
@@ -41,15 +40,8 @@ export interface CampRegistration {
 }
 
 export interface AttendanceRecord {
-  id: string; // userId
-  present: boolean;
-  remarks?: string;
-}
-
-export interface Attendance {
-    id: string; // dateId e.g., 2025-07-05
-    campId?: string;
-    markedBy: string; // Admin's UID
-    timestamp: any; // Firestore Timestamp
-    records: AttendanceRecord[];
+    id: string;
+    eventName: string;
+    date: Date;
+    status: 'Present' | 'Absent' | 'On-Leave';
 }

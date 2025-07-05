@@ -4,7 +4,7 @@ import { type Camp } from "@/lib/types";
 const camps: Camp[] = [
   {
     id: 'camp-1',
-    name: "Annual Training Camp",
+    title: "Annual Training Camp",
     location: "Ropar, Punjab",
     startDate: new Date(2024, 7, 1),
     endDate: new Date(2024, 7, 10),
@@ -13,7 +13,7 @@ const camps: Camp[] = [
   },
   {
     id: 'camp-2',
-    name: "Thal Sainik Camp",
+    title: "Thal Sainik Camp",
     location: "Delhi Cantt, Delhi",
     startDate: new Date(2024, 8, 15),
     endDate: new Date(2024, 8, 25),
@@ -22,7 +22,7 @@ const camps: Camp[] = [
   },
   {
     id: 'camp-3',
-    name: "Rock Climbing Camp",
+    title: "Rock Climbing Camp",
     location: "Manali, Himachal Pradesh",
     startDate: new Date(2024, 9, 5),
     endDate: new Date(2024, 9, 15),
@@ -31,7 +31,7 @@ const camps: Camp[] = [
   },
    {
     id: 'camp-4',
-    name: "Basic Leadership Camp",
+    title: "Basic Leadership Camp",
     location: "Dehradun, Uttarakhand",
     startDate: new Date(2024, 10, 20),
     endDate: new Date(2024, 10, 30),

@@ -34,7 +34,7 @@ export function VerifyLinkDialog({ isOpen, setIsOpen, camp }: VerifyLinkDialogPr
     setStatus('loading');
     try {
       const res = await verifyCampLinkIntegrity({
-        campName: camp.name,
+        campName: camp.title,
         campRegistrationLink: camp.registrationLink,
       });
       setResult(res);
@@ -72,7 +72,7 @@ export function VerifyLinkDialog({ isOpen, setIsOpen, camp }: VerifyLinkDialogPr
         {status === 'idle' && (
              <div className="flex flex-col items-center justify-center gap-4 py-8">
                 <ShieldCheck className="h-16 w-16 text-primary" />
-                <p className="text-center text-muted-foreground">Click the button below to verify the link for <br/><strong>{camp.name}</strong>.</p>
+                <p className="text-center text-muted-foreground">Click the button below to verify the link for <br/><strong>{camp.title}</strong>.</p>
              </div>
         )}
         

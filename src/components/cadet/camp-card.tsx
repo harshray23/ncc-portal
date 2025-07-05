@@ -35,7 +35,7 @@ export function CampCard({ camp }: CampCardProps) {
                 <Flame className="h-6 w-6" />
             </div>
             <div>
-                <CardTitle className="font-headline">{camp.name}</CardTitle>
+                <CardTitle className="font-headline">{camp.title}</CardTitle>
                 <CardDescription className="flex items-center gap-2 pt-1">
                     <MapPin className="h-4 w-4" /> {camp.location}
                 </CardDescription>

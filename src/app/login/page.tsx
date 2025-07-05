@@ -20,12 +20,6 @@ function LoginPageContent() {
         </CardContent>
         <CardFooter className="flex-col gap-4">
             <p className="text-center text-sm text-muted-foreground">
-                New cadet?{" "}
-                <Link href="/register" className="font-semibold text-primary hover:underline">
-                    Register here
-                </Link>
-            </p>
-            <p className="text-center text-sm text-muted-foreground">
                 <Link href="/" className="font-semibold text-primary hover:underline">
                     &larr; Back to Portal Selection
                 </Link>

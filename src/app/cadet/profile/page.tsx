@@ -1,9 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,74 +13,42 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Edit, Save, X, Loader2 } from "lucide-react";
+import { Edit, Save, X } from "lucide-react";
 import type { UserProfile } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
-const initialProfile: Partial<UserProfile> = {
-  name: "",
-  email: "",
-  regimentalNumber: "",
-  studentId: "",
-  rank: "",
-  unit: "",
-  phone: "",
-  whatsapp: ""
+const mockProfile: UserProfile = {
+  uid: 'cadet-1',
+  name: "Cdt. Harsh Home",
+  email: "homeharshit001@gmail.com",
+  role: 'cadet',
+  regimentalNumber: "PB20SDA123457",
+  studentId: "20BCS1025",
+  rank: "Cadet",
+  unit: "10 Bengal Battalion",
+  phone: "0987654321",
+  whatsapp: "0987654321",
+  approved: true,
+  createdAt: new Date(),
+  profilePhotoUrl: "https://placehold.co/80x80.png"
 };
 
 export default function ProfilePage() {
-  const [user, loadingAuth] = useAuthState(auth);
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState<Partial<UserProfile>>(initialProfile);
-  const [initialData, setInitialData] = useState<Partial<UserProfile>>(initialProfile);
-  const [loadingData, setLoadingData] = useState(true);
+  const [profile, setProfile] = useState<UserProfile>(mockProfile);
+  const [initialData, setInitialData] = useState<UserProfile>(mockProfile);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (user) {
-        setLoadingData(true);
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data() as UserProfile;
-          setProfile(data);
-          setInitialData(data);
-        } else {
-          toast({ variant: "destructive", title: "Error", description: "Profile not found." });
-        }
-        setLoadingData(false);
-      }
-    };
-    if (!loadingAuth) {
-        fetchProfile();
-    }
-  }, [user, loadingAuth, toast]);
-
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setProfile((prev) => ({ ...prev, [id]: value }));
   };
   
   const handleSave = async () => {
-    if (!user) return;
-    try {
-        const docRef = doc(db, "users", user.uid);
-        await updateDoc(docRef, {
-            name: profile.name,
-            email: profile.email,
-            rank: profile.rank,
-            unit: profile.unit,
-            phone: profile.phone,
-            whatsapp: profile.whatsapp
-        });
-        toast({ title: "Success", description: "Profile updated successfully." });
-        setInitialData(profile);
-        setIsEditing(false);
-    } catch(error) {
-        console.error("Error updating profile: ", error);
-        toast({ variant: "destructive", title: "Error", description: "Failed to update profile." });
-    }
+    // In a real app, this would write to Firestore. For now, it just updates local state.
+    toast({ title: "Success", description: "Profile updated successfully." });
+    setInitialData(profile);
+    setIsEditing(false);
   };
   
   const handleCancel = () => {
@@ -91,20 +56,12 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  if (loadingAuth || loadingData) {
-      return (
-          <div className="flex h-96 w-full items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-      )
-  }
-
   return (
     <Card className="max-w-4xl mx-auto">
       <CardHeader>
         <div className="flex items-center space-x-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage src={profile.profilePhotoUrl || "https://placehold.co/80x80.png"} alt={profile.name} data-ai-hint="profile picture" />
+            <AvatarImage src={profile.profilePhotoUrl} alt={profile.name} data-ai-hint="profile picture" />
             <AvatarFallback>{profile.name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>

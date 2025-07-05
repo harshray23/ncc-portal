@@ -67,7 +67,7 @@ export function CampRegistrationForm({ isOpen, setIsOpen, camp }: CampRegistrati
         try {
             const result = await autocompleteCampRegistration({
                 cadetName: currentCadetName,
-                campDetails: `Camp: ${camp.name}, Location: ${camp.location}, Dates: ${format(camp.startDate, "P")} to ${format(camp.endDate, "P")}`,
+                campDetails: `Camp: ${camp.title}, Location: ${camp.location}, Dates: ${format(camp.startDate, "P")} to ${format(camp.endDate, "P")}`,
             });
 
             form.setValue('regimentalNumber', result.regimentalNumber);
@@ -103,7 +103,7 @@ export function CampRegistrationForm({ isOpen, setIsOpen, camp }: CampRegistrati
             form.reset();
             toast({
                 title: "Registration Successful!",
-                description: `You have successfully registered for ${camp.name}.`,
+                description: `You have successfully registered for ${camp.title}.`,
             });
         }, 1500);
     }
@@ -112,7 +112,7 @@ export function CampRegistrationForm({ isOpen, setIsOpen, camp }: CampRegistrati
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Register for {camp.name}</DialogTitle>
+          <DialogTitle>Register for {camp.title}</DialogTitle>
           <DialogDescription>
             Fill in your details below. Use the AI assistant to speed things up!
           </DialogDescription>
