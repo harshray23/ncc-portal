@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { signInWithEmailAndPassword } from "firebase/auth";
 
-import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -45,44 +43,42 @@ function LoginFormComponent() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      toast({ title: "Login Successful", description: "Redirecting..." });
-      
-      // Mock role-based redirection based on email
-      let path = "/";
-      switch (values.email) {
-        case "elvishray007@gmail.com":
-          path = "/admin/dashboard";
-          break;
-        case "harshray2007@gmail.com":
-          path = "/manager/dashboard";
-          break;
-        case "homeharshit001@gmail.com":
-          path = "/cadet/dashboard";
-          break;
-        default:
-          // Default to cadet dashboard for any other valid login
-          path = "/cadet/dashboard";
-          break;
-      }
-      router.push(path);
 
-    } catch (error: any) {
-      console.error(error);
-      let errorMessage = "An unknown error occurred.";
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        errorMessage = "Invalid email or password. Please try again.";
-      } else {
-        errorMessage = error.message;
-      }
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
+    // Mock user database
+    const mockUsers = {
+        "elvishray007@gmail.com": { role: "admin", password: "password123" },
+        "harshray2007@gmail.com": { role: "manager", password: "password123" },
+        "homeharshit001@gmail.com": { role: "cadet", password: "password123" }
+    };
+    
+    const user = mockUsers[values.email as keyof typeof mockUsers];
+
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    if (user && user.password === values.password) {
+        toast({ title: "Login Successful", description: "Redirecting..." });
+        
+        let path = "/";
+        switch (user.role) {
+            case "admin":
+              path = "/admin/dashboard";
+              break;
+            case "manager":
+              path = "/manager/dashboard";
+              break;
+            case "cadet":
+              path = "/cadet/dashboard";
+              break;
+        }
+        router.push(path);
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: "Invalid email or password. Please try again.",
+        });
+        setIsLoading(false);
     }
   }
 
