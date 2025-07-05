@@ -42,6 +42,7 @@ const cadetNav = [
 const managerNav = [
   { href: "/manager/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/manager/activity", icon: BarChart, label: "Activity Monitor" },
+  { href: "/manager/profile", icon: User, label: "My Profile" },
 ];
 
 const adminNav = [
@@ -59,8 +60,8 @@ const navItems = {
 };
 
 const userDetails = {
-    cadet: { name: "Cdt. Harsh Home", email: "homeharsh001@gmail.com" },
-    manager: { name: "Maj. Vikram Batra", email: "vikram.batra@example.com" },
+    cadet: { name: "Cdt. Harsh Home", email: "homeharshit001@gmail.com" },
+    manager: { name: "Maj. Vikram Batra", email: "harshray2007@gmail.com" },
     admin: { name: "Col. Elvish Ray", email: "elvishray007@gmail.com" },
 }
 
