@@ -1,29 +1,44 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions for roles
+    // Helper Functions
+    function isApproved() {
+      // Check for document existence before trying to access data
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.approved == true;
+    }
+
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
     function isManager() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "manager";
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "manager" && 
+             isApproved();
     }
 
     function isCadet() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "cadet";
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "cadet" && 
+             isApproved();
     }
-    
+
     // USERS
     match /users/{userId} {
-      // Admins and Managers can read any user profile. Cadets can only read their own.
+      // Admins/Managers can view all profiles, users can only view their own.
       allow read: if isAdmin() || isManager() || request.auth.uid == userId;
-      // Admins can update any profile (e.g., for approval). Cadets can update their own.
+      
+      // Admins can update any profile (e.g., for approval), users can update their own.
       allow update: if isAdmin() || request.auth.uid == userId;
+      
       // Anyone can create a user document during registration.
-      allow create: if true;
-      // Nobody can delete user documents.
+      allow create: if request.auth != null;
+      
+      // No one can delete user documents from the client.
       allow delete: if false;
     }
 
@@ -36,15 +51,19 @@ service cloud.firestore {
     // CAMP REGISTRATIONS
     match /camp_registrations/{regId} {
       allow create: if isCadet();
-      // Admins/Managers can read all. Cadets can read their own registrations.
+      // Admins/Managers can read all registrations. Cadets can only read their own.
       allow read: if isAdmin() || isManager() || (isCadet() && request.auth.uid == resource.data.cadetId);
       allow delete: if isAdmin();
     }
 
     // ATTENDANCE
-    match /attendance/{dateId}/records/{userId} {
-      allow read: if isAdmin() || isManager() || request.auth.uid == userId;
-      allow create, update: if isAdmin();
+    match /attendance/{dateId} {
+        allow read, write: if isAdmin() || isManager();
+
+        match /records/{userId} {
+          allow read: if isAdmin() || isManager() || request.auth.uid == userId;
+          allow create, update: if isAdmin();
+        }
     }
 
     // SYSTEM-WIDE ADMIN ONLY ACCESS
