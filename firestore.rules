@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -6,7 +7,10 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Use custom claims to check roles. This is more secure and efficient.
+    function isUser(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
     function isAdmin() {
       return isAuth() && request.auth.token.role == "admin";
     }
@@ -21,38 +25,38 @@ service cloud.firestore {
 
     // USERS
     match /users/{userId} {
-      // Admins/Managers can read all user profiles.
-      // Users can read/update their own profile.
-      allow read: if isAdmin() || isManager() || (isAuth() && request.auth.uid == userId);
-      allow update: if isAdmin() || (isAuth() && request.auth.uid == userId);
-      // Creation/deletion must be handled by secure server-side actions.
+      // Admins and managers can read any user profile
+      // Users can read their own profile
+      allow read: if isAdmin() || isManager() || isUser(userId);
+      // Admins can update any profile (e.g., to approve)
+      // Users can update their own profile
+      allow update: if isAdmin() || isUser(userId);
+      // Creation/deletion is handled server-side
       allow create, delete: if false;
     }
 
     // CAMPS
     match /camps/{campId} {
       allow create, update, delete: if isAdmin();
-      allow read: if isAdmin() || isManager() || isCadet();
+      allow read: if isAuth(); // Any authenticated user can read camp info
     }
 
     // CAMP REGISTRATIONS
     match /camp_registrations/{regId} {
       allow create: if isCadet();
-      // Admins/Managers can read all registrations.
-      // Cadets can only read their own registration.
-      allow read: if isAdmin() || isManager() || (isAuth() && resource.data.cadetId == request.auth.uid);
+      // Admins/Managers can read all registrations. Cadets can read their own.
+      allow read: if isAdmin() || isManager() || (isCadet() && request.auth.uid == resource.data.cadetId);
       allow delete: if isAdmin();
     }
 
     // ATTENDANCE
     match /attendance/{dateId} {
-      allow read: if isAdmin() || isManager();
-      allow write: if isAdmin();
+        allow read: if isAdmin() || isManager();
+        allow write: if isAdmin();
     }
+    
     match /attendance/{dateId}/records/{userId} {
-      // Admins/Managers can read all attendance.
-      // Cadets can only read their own.
-      allow read: if isAdmin() || isManager() || (isAuth() && request.auth.uid == userId);
+      allow read: if isAdmin() || isManager() || isUser(userId);
       allow create, update: if isAdmin();
     }
   }

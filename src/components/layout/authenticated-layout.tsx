@@ -33,15 +33,20 @@ export default function AuthenticatedLayout({
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        setLoading(true);
         console.log("Logged in:", user.uid);
         try {
+          // Get role from custom claims in the ID token
+          const idTokenResult = await user.getIdTokenResult();
+          const userRole = idTokenResult.claims.role as UserRole;
+          
+          // Get approval status and other data from Firestore
           const userDocRef = doc(db, "users", user.uid);
           const userDoc = await getDoc(userDocRef);
           console.log("User Firestore data:", userDoc.data());
 
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            const userRole = userData.role;
             const isApproved = userData.approved;
             
             if (userRole === role) {
