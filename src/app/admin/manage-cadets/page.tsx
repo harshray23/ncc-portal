@@ -88,7 +88,6 @@ export default function ManageCadetsPage() {
       "Student ID": cadet.studentId,
       "Phone": cadet.phone,
       "WhatsApp": cadet.whatsapp,
-      "Status": 'Approved',
       "Registered At": cadet.createdAt.toLocaleDateString(),
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
