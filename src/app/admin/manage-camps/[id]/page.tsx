@@ -32,6 +32,7 @@ const initialRegistrations: CampRegistration[] = [
     { id: 'reg-2', campId: 'CAMP-01', cadetId: 'cadet-2', cadetName: 'Priya Verma', cadetYear: 2, cadetRegimentalNumber: 'PB20SDA123457', status: 'Accepted', registeredAt: new Date() },
     { id: 'reg-3', campId: 'CAMP-01', cadetId: 'cadet-3', cadetName: 'Rahul Singh', cadetYear: 1, cadetRegimentalNumber: 'PB20SDA123458', status: 'Pending', registeredAt: new Date() },
     { id: 'reg-4', campId: 'CAMP-02', cadetId: 'cadet-1', cadetName: 'Ankit Sharma', cadetYear: 2, cadetRegimentalNumber: 'PB20SDA123456', status: 'Accepted', registeredAt: new Date() },
+    { id: 'reg-5', campId: 'CAMP-02', cadetId: 'cadet-3', cadetName: 'Rahul Singh', cadetYear: 1, cadetRegimentalNumber: 'PB20SDA123458', status: 'Rejected', registeredAt: new Date() },
 ];
 
 export default function CampDetailsPage() {
@@ -70,13 +71,13 @@ export default function CampDetailsPage() {
   };
 
   const handleRegistrationStatus = (registrationId: string, status: 'Accepted' | 'Rejected') => {
+    const registration = registrations.find(r => r.id === registrationId);
     setRegistrations(prev => 
         prev.map(r => r.id === registrationId ? { ...r, status } : r)
     );
-    const registration = registrations.find(r => r.id === registrationId);
     toast({
-        title: "Registration Updated",
-        description: `${registration?.cadetName} has been ${status.toLowerCase()}.`
+        title: `Registration ${status}`,
+        description: `The registration for ${registration?.cadetName} has been ${status.toLowerCase()}.`
     });
   }
 

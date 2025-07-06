@@ -35,6 +35,7 @@ const quickLinks = [
 
 const mockNotifications: AppNotification[] = [
     { id: 'notif-1', message: "Congratulations! You have been selected for the Annual Training Camp.", read: false, timestamp: new Date(Date.now() - 3600000) },
+    { id: 'notif-4', message: "Sorry, you are not eligible for the Thal Sainik Camp.", read: false, timestamp: new Date(Date.now() - 1800000) },
     { id: 'notif-2', message: "Your profile details have been updated successfully.", read: true, timestamp: new Date(Date.now() - 86400000 * 2) },
     { id: 'notif-3', message: "Reminder: Weekly parade tomorrow at 0800 hrs.", read: true, timestamp: new Date(Date.now() - 86400000 * 3) }
 ]
