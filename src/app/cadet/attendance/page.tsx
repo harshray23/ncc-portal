@@ -18,12 +18,12 @@ import { format } from "date-fns";
 import type { AttendanceRecord } from "@/lib/types";
 
 const attendanceRecords: AttendanceRecord[] = [
-  { id: "att-1", eventName: "Annual Training Camp - Day 1", date: new Date(2023, 7, 2), status: "Present" },
-  { id: "att-2", eventName: "Weekly Parade", date: new Date(2023, 7, 12), status: "Present" },
-  { id: "att-3", eventName: "Weapon Training", date: new Date(2023, 7, 15), status: "Absent" },
-  { id: "att-4", eventName: "Weekly Parade", date: new Date(2023, 7, 19), status: "Present" },
-  { id: "att-5", eventName: "Map Reading Class", date: new Date(2023, 7, 22), status: "On-Leave" },
-  { id: "att-6", eventName: "Weekly Parade", date: new Date(2023, 7, 26), status: "Present" },
+  { id: "att-1", eventName: "Annual Training Camp - Day 1", date: new Date(2024, 7, 2), status: "Present" },
+  { id: "att-2", eventName: "Weekly Parade", date: new Date(2024, 7, 12), status: "Present" },
+  { id: "att-3", eventName: "Weapon Training", date: new Date(2024, 7, 15), status: "Absent" },
+  { id: "att-4", eventName: "Weekly Parade", date: new Date(2024, 7, 19), status: "Present" },
+  { id: "att-5", eventName: "Map Reading Class", date: new Date(2024, 7, 22), status: "On-Leave" },
+  { id: "att-6", eventName: "Weekly Parade", date: new Date(2024, 7, 26), status: "Present" },
 ];
 
 export default function AttendancePage() {
