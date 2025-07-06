@@ -37,20 +37,6 @@ export default function PortalSelectionPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <Card className="text-center bg-card/80 hover:shadow-lg transition-shadow">
-                            <CardHeader>
-                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                                    <Shield className="h-8 w-8" />
-                                </div>
-                                <CardTitle className="mt-4">Admin Portal</CardTitle>
-                                <CardDescription>Manage registrations and administrative tasks.</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <Link href="/login?role=admin" className="w-full" passHref>
-                                    <Button variant="outline" className="w-full">Login as Admin</Button>
-                                </Link>
-                            </CardContent>
-                        </Card>
-                        <Card className="text-center bg-card/80 hover:shadow-lg transition-shadow">
                              <CardHeader>
                                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
                                     <User className="h-8 w-8" />
@@ -64,6 +50,20 @@ export default function PortalSelectionPage() {
                                 </Link>
                                 <Link href="/register" className="w-full" passHref>
                                      <Button variant="default" className="w-full">Register as Cadet</Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+                        <Card className="text-center bg-card/80 hover:shadow-lg transition-shadow">
+                            <CardHeader>
+                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                    <Shield className="h-8 w-8" />
+                                </div>
+                                <CardTitle className="mt-4">Admin Portal</CardTitle>
+                                <CardDescription>Manage registrations and administrative tasks.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Link href="/login?role=admin" className="w-full" passHref>
+                                    <Button variant="outline" className="w-full">Login as Admin</Button>
                                 </Link>
                             </CardContent>
                         </Card>
