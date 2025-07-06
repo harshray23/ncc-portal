@@ -49,6 +49,7 @@ const adminNav = [
   { href: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/admin/manage-cadets", icon: Users, label: "Manage Cadets" },
   { href: "/admin/manage-camps", icon: Flame, label: "Manage Camps" },
+  { href: "/admin/manage-attendance", icon: CheckSquare, label: "Manage Attendance" },
   { href: "/admin/profile", icon: User, label: "My Profile" },
   { href: "/admin/settings", icon: Settings, label: "Settings" },
 ];
