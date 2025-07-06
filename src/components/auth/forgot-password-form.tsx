@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { sendPasswordResetEmail } from "firebase/auth";
 
-import { auth } from "@/lib/firebase";
+import { getFirebase } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -39,6 +39,7 @@ export function ForgotPasswordForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
+      const { auth } = getFirebase();
       await sendPasswordResetEmail(auth, values.email);
       toast({ 
         title: "Password Reset Email Sent", 
@@ -48,7 +49,9 @@ export function ForgotPasswordForm() {
     } catch (error: any) {
       console.error(error);
       let errorMessage = "An unknown error occurred.";
-      if (error.code === 'auth/user-not-found') {
+      if (error.message?.includes('Firebase initialization failed')) {
+        errorMessage = error.message;
+      } else if (error.code === 'auth/user-not-found') {
         errorMessage = "No user found with this email address.";
       }
       toast({

@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase";
+import { getFirebase } from "@/lib/firebase";
 import {
   ShieldCheck,
   LayoutDashboard,
@@ -77,6 +77,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
 
 
   const handleLogout = () => {
+    const { auth } = getFirebase();
     auth.signOut().then(() => {
         router.push("/");
     });

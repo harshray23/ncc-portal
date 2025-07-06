@@ -11,7 +11,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import type { UserRole } from "@/lib/types";
 
-import { auth } from "@/lib/firebase";
+import { getFirebase } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -91,7 +91,8 @@ function LoginFormComponent() {
             }
             emailToLogin = result.email;
         }
-
+        
+        const { auth } = getFirebase();
         const userCredential = await signInWithEmailAndPassword(auth, emailToLogin, password);
         const user = userCredential.user;
 
@@ -127,7 +128,9 @@ function LoginFormComponent() {
         router.push(path);
     } catch (error: any) {
         let errorMessage = "Invalid credentials. Please try again.";
-        if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        if (error.message?.includes('Firebase initialization failed')) {
+            errorMessage = error.message;
+        } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
              errorMessage = "Invalid credentials. Please try again.";
         } else if (error.code) {
             errorMessage = error.code.replace('auth/', '').replace(/-/g, ' ');
