@@ -43,7 +43,7 @@ export default function CadetDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold font-headline">Welcome, Cadet Ankit Sharma</h1>
+        <h1 className="text-3xl font-bold font-headline">Welcome, Cdt. Harsh Home</h1>
         <p className="text-muted-foreground">
           Here is a summary of your NCC activities.
         </p>

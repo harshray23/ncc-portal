@@ -31,7 +31,8 @@ const mockProfile: UserProfile = {
   whatsapp: "0987654321",
   approved: true,
   createdAt: new Date(),
-  profilePhotoUrl: "https://placehold.co/80x80.png"
+  profilePhotoUrl: "https://placehold.co/80x80.png",
+  year: 2,
 };
 
 export default function ProfilePage() {

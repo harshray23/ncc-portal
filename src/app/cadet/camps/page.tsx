@@ -12,7 +12,7 @@ const initialCamps: Camp[] = [
 ];
 
 const initialRegistrations: CampRegistration[] = [
-    { id: 'reg-2', campId: 'CAMP-01', cadetId: 'cadet-1', cadetName: 'Ankit Sharma', cadetYear: 2, cadetRegimentalNumber: 'PB20SDA123456', status: 'Accepted', registeredAt: new Date() },
+    { id: 'reg-2', campId: 'CAMP-01', cadetId: 'cadet-1', cadetName: 'Cdt. Harsh Home', cadetYear: 2, cadetRegimentalNumber: 'PB20SDA123457', status: 'Accepted', registeredAt: new Date() },
 ];
 
 

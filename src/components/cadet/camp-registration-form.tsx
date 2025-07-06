@@ -29,8 +29,8 @@ type RegistrationFormValues = z.infer<typeof registrationSchema>;
 // Mock current cadet data
 const currentCadet = {
     id: 'cadet-1',
-    name: "Ankit Sharma",
-    regimentalNumber: 'PB20SDA123456',
+    name: "Cdt. Harsh Home",
+    regimentalNumber: 'PB20SDA123457',
     year: 2,
 };
 
