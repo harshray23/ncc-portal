@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  email: z.string().min(1, { message: "This field is required." }),
+  identifier: z.string().min(1, { message: "This field is required." }),
   password: z
     .string()
     .min(1, { message: "Password is required." }),
@@ -40,7 +40,7 @@ function LoginFormComponent() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      identifier: "",
       password: "",
     },
   });
@@ -49,35 +49,25 @@ function LoginFormComponent() {
     setIsLoading(true);
 
     // Mock user database
-    const mockUsers = {
-        "elvishray007@gmail.com": { role: "admin", password: "password123" },
-        "harshray2007@gmail.com": { role: "manager", password: "password123" },
-        "homeharshit001@gmail.com": { role: "cadet", password: "password123" }
-    };
+    const mockUsers = [
+        { email: "elvishray007@gmail.com", regimentalNumber: null, role: "admin", password: "password123" },
+        { email: "harshray2007@gmail.com", regimentalNumber: null, role: "manager", password: "password123" },
+        { email: "homeharshit001@gmail.com", regimentalNumber: "PB20SDA123457", role: "cadet", password: "password123" }
+    ];
     
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    let loginSuccess = false;
-    let userRole = '';
-    const { email: identifier, password } = values;
+    const { identifier, password } = values;
 
-    const userByEmail = mockUsers[identifier as keyof typeof mockUsers];
+    const user = mockUsers.find(u => 
+        (u.email === identifier) || 
+        (u.regimentalNumber && u.regimentalNumber === identifier)
+    );
 
-    if (userByEmail && userByEmail.password === password) {
-        // Standard email login for any role
-        loginSuccess = true;
-        userRole = userByEmail.role;
-    } else if (!identifier.includes('@') && identifier === password) {
-        // Regimental number login where password is the same, assume cadet
-        loginSuccess = true;
-        userRole = 'cadet';
-    }
-
-
-    if (loginSuccess) {
+    if (user && user.password === password) {
         const expectedRole = searchParams.get('role');
-        if (expectedRole && userRole !== expectedRole) {
+        if (expectedRole && user.role !== expectedRole) {
             toast({
                 variant: "destructive",
                 title: "Access Denied",
@@ -90,7 +80,7 @@ function LoginFormComponent() {
         toast({ title: "Login Successful", description: "Redirecting..." });
         
         let path = "/";
-        switch (userRole) {
+        switch (user.role) {
             case "admin":
               path = "/admin/dashboard";
               break;
@@ -120,7 +110,7 @@ function LoginFormComponent() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="email"
+          name="identifier"
           render={({ field }) => (
             <FormItem>
               <FormLabel>{label}</FormLabel>
