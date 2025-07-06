@@ -14,6 +14,7 @@ import {
   Settings,
   LogOut,
   BarChart,
+  GraduationCap,
 } from "lucide-react";
 import {
   SidebarHeader,
@@ -50,6 +51,7 @@ const adminNav = [
   { href: "/admin/manage-cadets", icon: Users, label: "Manage Cadets" },
   { href: "/admin/manage-camps", icon: Flame, label: "Manage Camps" },
   { href: "/admin/manage-attendance", icon: CheckSquare, label: "Manage Attendance" },
+  { href: "/admin/manage-year", icon: GraduationCap, label: "Manage Year" },
   { href: "/admin/profile", icon: User, label: "My Profile" },
   { href: "/admin/settings", icon: Settings, label: "Settings" },
 ];
@@ -96,7 +98,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
           {currentNav.map((item) => (
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
-                isActive={pathname === item.href}
+                isActive={pathname.startsWith(item.href)}
                 tooltip={{ children: item.label }}
                 asChild
               >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useActionState, useRef } from 'react';
+import { useEffect, useActionState, useRef, useState } from 'react';
 import { useFormStatus } from "react-dom";
 import { Loader2 } from 'lucide-react';
 import {
@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { addCadet } from '@/lib/actions/user.actions';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import type { UserProfile } from '@/lib/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AddCadetDialogProps {
     isOpen: boolean;
@@ -37,22 +38,26 @@ function SubmitButton() {
 export function AddCadetDialog({ isOpen, onOpenChange, onCadetAdded }: AddCadetDialogProps) {
     const [state, formAction] = useActionState(addCadet, { type: "", message: "" });
     const formRef = useRef<HTMLFormElement>(null);
+    const [year, setYear] = useState("");
     
     useEffect(() => {
         if (state.type === 'success' && state.data) {
             onCadetAdded(state.data);
             formRef.current?.reset();
+            setYear("");
         }
     }, [state, onCadetAdded]);
+
+    const handleOpenChange = (open: boolean) => {
+        if (!open) {
+            formRef.current?.reset();
+            setYear("");
+        }
+        onOpenChange(open);
+    }
     
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => {
-            if (!open) {
-                formRef.current?.reset();
-                // Reset action state if needed, though usually not necessary
-            }
-            onOpenChange(open);
-        }}>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Add New Cadet</DialogTitle>
@@ -67,6 +72,7 @@ export function AddCadetDialog({ isOpen, onOpenChange, onCadetAdded }: AddCadetD
                             <AlertDescription>{state.message || "Please check the form for errors."}</AlertDescription>
                         </Alert>
                     )}
+                     <input type="hidden" name="year" value={year} />
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                             <Label htmlFor="name">Full Name</Label>
@@ -94,6 +100,20 @@ export function AddCadetDialog({ isOpen, onOpenChange, onCadetAdded }: AddCadetD
                             {state.errors?.studentId && <p className="text-sm text-destructive">{state.errors.studentId[0]}</p>}
                         </div>
                         <div className="space-y-2">
+                            <Label htmlFor="year-select">Year</Label>
+                             <Select name="year-select" required onValueChange={setYear} value={year}>
+                                <SelectTrigger id="year-select">
+                                    <SelectValue placeholder="Select Year" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="1">1st Year</SelectItem>
+                                    <SelectItem value="2">2nd Year</SelectItem>
+                                    <SelectItem value="3">3rd Year</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {state.errors?.year && <p className="text-sm text-destructive">{state.errors.year[0]}</p>}
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
                             <Label htmlFor="phone">Phone Number</Label>
                             <Input id="phone" name="phone" type="tel" required />
                             {state.errors?.phone && <p className="text-sm text-destructive">{state.errors.phone[0]}</p>}

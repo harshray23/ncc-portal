@@ -15,6 +15,7 @@ export interface UserProfile {
   approved: boolean;
   profilePhotoUrl?: string;
   createdAt: any; // Firestore Timestamp
+  year?: number;
 }
 
 export interface Camp {

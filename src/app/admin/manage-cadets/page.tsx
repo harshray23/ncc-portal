@@ -14,13 +14,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { AddCadetDialog } from "@/components/admin/add-cadet-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 const mockCadets: UserProfile[] = [
-  { uid: 'cadet-1', name: 'Ankit Sharma', email: 'ankit.sharma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123456', regimentalNumberEditCount: 0, studentId: '20BCS1024', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
-  { uid: 'cadet-2', name: 'Priya Verma', email: 'priya.verma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123457', regimentalNumberEditCount: 1, studentId: '20BCS1025', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
-  { uid: 'cadet-3', name: 'Rahul Singh', email: 'rahul.singh@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123458', regimentalNumberEditCount: 0, studentId: '20BCS1026', rank: 'Lance Corporal', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
-  { uid: 'cadet-4', name: 'Sneha Gupta', email: 'sneha.gupta@example.com', role: 'cadet', regimentalNumber: 'PB20SWA987654', regimentalNumberEditCount: 2, studentId: '20BCS1027', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
+  { uid: 'cadet-1', name: 'Ankit Sharma', email: 'ankit.sharma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123456', regimentalNumberEditCount: 0, studentId: '20BCS1024', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 2 },
+  { uid: 'cadet-2', name: 'Priya Verma', email: 'priya.verma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123457', regimentalNumberEditCount: 1, studentId: '20BCS1025', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 2 },
+  { uid: 'cadet-3', name: 'Rahul Singh', email: 'rahul.singh@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123458', regimentalNumberEditCount: 0, studentId: '20BCS1026', rank: 'Lance Corporal', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 1 },
+  { uid: 'cadet-4', name: 'Sneha Gupta', email: 'sneha.gupta@example.com', role: 'cadet', regimentalNumber: 'PB20SWA987654', regimentalNumberEditCount: 2, studentId: '20BCS1027', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 1 },
 ];
 
 
@@ -101,6 +102,7 @@ export default function ManageCadetsPage() {
       "Name": cadet.name,
       "Email": cadet.email,
       "Rank": cadet.rank,
+      "Year": cadet.year,
       "Student ID": cadet.studentId,
       "Phone": cadet.phone,
       "WhatsApp": cadet.whatsapp,
@@ -146,13 +148,14 @@ export default function ManageCadetsPage() {
                 <TableHead>Regimental No.</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Rank</TableHead>
+                <TableHead>Year</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {filteredCadets.length === 0 ? (
                     <TableRow>
-                        <TableCell colSpan={4} className="text-center">No cadets found.</TableCell>
+                        <TableCell colSpan={5} className="text-center">No cadets found.</TableCell>
                     </TableRow>
                 ) : (
                     filteredCadets.map((cadet) => (
@@ -160,6 +163,7 @@ export default function ManageCadetsPage() {
                         <TableCell className="font-medium">{cadet.regimentalNumber}</TableCell>
                         <TableCell>{cadet.name}</TableCell>
                         <TableCell>{cadet.rank}</TableCell>
+                        <TableCell>{cadet.year}</TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm" onClick={() => handleEditClick(cadet)}>Edit</Button>
                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDeleteClick(cadet)}>Delete</Button>
@@ -212,6 +216,24 @@ export default function ManageCadetsPage() {
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="rank" className="text-right">Rank</Label>
                         <Input id="rank" value={editingCadet.rank} onChange={(e) => setEditingCadet({...editingCadet, rank: e.target.value})} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="year" className="text-right">Year</Label>
+                        <div className="col-span-3">
+                            <Select 
+                                value={editingCadet.year?.toString()} 
+                                onValueChange={(value) => setEditingCadet({...editingCadet, year: parseInt(value, 10)})}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Year" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="1">1st Year</SelectItem>
+                                    <SelectItem value="2">2nd Year</SelectItem>
+                                    <SelectItem value="3">3rd Year</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="phone" className="text-right">Phone</Label>

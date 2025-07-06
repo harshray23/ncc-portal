@@ -11,6 +11,7 @@ const addCadetSchema = z.object({
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
   whatsapp: z.string().min(10, "WhatsApp number must be at least 10 digits"),
   rank: z.string().min(1, "Rank is required"),
+  year: z.string().regex(/^[1-3]$/, "Year must be 1, 2, or 3").transform(Number),
 });
 
 export async function addCadet(prevState: any, formData: FormData) {
