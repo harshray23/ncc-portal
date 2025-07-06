@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import * as XLSX from 'xlsx';
 import type { UserProfile } from "@/lib/types";
+import { useParams } from 'next/navigation';
 
 const camps = [
   { id: 'CAMP-01', name: 'Annual Training Camp', location: 'Ropar, Punjab', startDate: new Date(2024, 7, 1), endDate: new Date(2024, 7, 10), status: 'Upcoming', description: "A comprehensive 10-day camp focusing on drill, weapon training, and map reading.", registrants: 120 },
@@ -24,7 +25,8 @@ const mockRegisteredCadets: UserProfile[] = [
 ];
 
 
-export default function CampDetailsPage({ params }: { params: { id: string } }) {
+export default function CampDetailsPage() {
+  const params = useParams();
   const camp = camps.find(c => c.id === params.id);
 
   const handleDownload = () => {
