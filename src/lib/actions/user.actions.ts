@@ -50,19 +50,6 @@ export async function addCadet(prevState: any, formData: FormData) {
   }
 }
 
-
-export async function approveCadet(uid: string) {
-    try {
-        // NOTE: Firebase Admin SDK calls are disabled for mock data mode.
-        console.log("Mock approving cadet:", uid);
-        revalidatePath('/admin/manage-cadets');
-        return { success: true, message: 'Cadet approved successfully (mock response).' };
-    } catch (error) {
-        console.error('Error approving cadet:', error);
-        return { success: false, message: 'Failed to approve cadet (mock response).' };
-    }
-}
-
 const registerCadetSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   email: z.string().email("Invalid email address"),

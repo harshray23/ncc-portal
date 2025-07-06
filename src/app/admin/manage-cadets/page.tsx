@@ -7,10 +7,9 @@ import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileDown, PlusCircle, Search, CheckCircle2, Loader2, Save } from "lucide-react";
+import { FileDown, PlusCircle, Search, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AddCadetDialog } from "@/components/admin/add-cadet-dialog";
@@ -18,30 +17,11 @@ import { AddCadetDialog } from "@/components/admin/add-cadet-dialog";
 
 const mockCadets: UserProfile[] = [
   { uid: 'cadet-1', name: 'Ankit Sharma', email: 'ankit.sharma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123456', regimentalNumberEditCount: 0, studentId: '20BCS1024', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
-  { uid: 'cadet-2', name: 'Priya Verma', email: 'priya.verma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123457', regimentalNumberEditCount: 1, studentId: '20BCS1025', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: false, createdAt: new Date() },
+  { uid: 'cadet-2', name: 'Priya Verma', email: 'priya.verma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123457', regimentalNumberEditCount: 1, studentId: '20BCS1025', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
   { uid: 'cadet-3', name: 'Rahul Singh', email: 'rahul.singh@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123458', regimentalNumberEditCount: 0, studentId: '20BCS1026', rank: 'Lance Corporal', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
-  { uid: 'cadet-4', name: 'Sneha Gupta', email: 'sneha.gupta@example.com', role: 'cadet', regimentalNumber: 'PB20SWA987654', regimentalNumberEditCount: 2, studentId: '20BCS1027', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: false, createdAt: new Date() },
+  { uid: 'cadet-4', name: 'Sneha Gupta', email: 'sneha.gupta@example.com', role: 'cadet', regimentalNumber: 'PB20SWA987654', regimentalNumberEditCount: 2, studentId: '20BCS1027', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date() },
 ];
 
-
-function ApproveButton({ onApprove }: { onApprove: () => void }) {
-  const [isApproving, setIsApproving] = useState(false);
-  
-  const handleApprove = () => {
-    setIsApproving(true);
-    setTimeout(() => {
-        onApprove();
-        setIsApproving(false);
-    }, 1000)
-  };
-
-  return (
-    <Button variant="outline" size="sm" onClick={handleApprove} disabled={isApproving}>
-      {isApproving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
-      {isApproving ? "Approving..." : "Approve"}
-    </Button>
-  );
-}
 
 export default function ManageCadetsPage() {
   const [cadets, setCadets] = useState<UserProfile[]>(mockCadets);
@@ -50,15 +30,6 @@ export default function ManageCadetsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingCadet, setEditingCadet] = useState<UserProfile | null>(null);
   const { toast } = useToast();
-
-  const handleApproveCadet = (uid: string) => {
-    setCadets(currentCadets => 
-        currentCadets.map(cadet => 
-            cadet.uid === uid ? { ...cadet, approved: true } : cadet
-        )
-    );
-    toast({ title: "Success", description: "Cadet approved successfully." });
-  }
   
   const handleEditClick = (cadet: UserProfile) => {
     setEditingCadet({ ...cadet });
@@ -117,7 +88,7 @@ export default function ManageCadetsPage() {
       "Student ID": cadet.studentId,
       "Phone": cadet.phone,
       "WhatsApp": cadet.whatsapp,
-      "Status": cadet.approved ? 'Approved' : 'Pending',
+      "Status": 'Approved',
       "Registered At": cadet.createdAt.toLocaleDateString(),
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -133,7 +104,7 @@ export default function ManageCadetsPage() {
         <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <CardTitle>Cadet Roster</CardTitle>
-            <CardDescription>View, manage, and approve cadet profiles.</CardDescription>
+            <CardDescription>View, manage, and add cadet profiles.</CardDescription>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleDownload}><FileDown className="mr-2"/> Download Details (XLSX)</Button>
@@ -160,14 +131,13 @@ export default function ManageCadetsPage() {
                 <TableHead>Regimental No.</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Rank</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {filteredCadets.length === 0 ? (
                     <TableRow>
-                        <TableCell colSpan={5} className="text-center">No cadets found.</TableCell>
+                        <TableCell colSpan={4} className="text-center">No cadets found.</TableCell>
                     </TableRow>
                 ) : (
                     filteredCadets.map((cadet) => (
@@ -175,17 +145,8 @@ export default function ManageCadetsPage() {
                         <TableCell className="font-medium">{cadet.regimentalNumber}</TableCell>
                         <TableCell>{cadet.name}</TableCell>
                         <TableCell>{cadet.rank}</TableCell>
-                        <TableCell>
-                            <Badge variant={cadet.approved ? 'default' : 'destructive'}>
-                                {cadet.approved ? 'Approved' : 'Pending'}
-                            </Badge>
-                        </TableCell>
                         <TableCell className="text-right">
-                        {!cadet.approved ? (
-                          <ApproveButton onApprove={() => handleApproveCadet(cadet.uid)} />
-                        ) : (
                           <Button variant="ghost" size="sm" onClick={() => handleEditClick(cadet)}>Edit</Button>
-                        )}
                         </TableCell>
                     </TableRow>
                     ))
