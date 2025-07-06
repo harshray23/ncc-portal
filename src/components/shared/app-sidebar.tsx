@@ -85,7 +85,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
         <div className="flex items-center gap-2 p-2">
           <ShieldCheck className="h-8 w-8 text-primary" />
           <div className="flex flex-col">
-            <h2 className="font-headline text-lg font-semibold text-sidebar-foreground">CadetLink</h2>
+            <h2 className="font-headline text-lg font-semibold text-sidebar-foreground">NCC</h2>
             <p className="text-xs text-sidebar-foreground/70">{role.charAt(0).toUpperCase() + role.slice(1)} Portal</p>
           </div>
         </div>
