@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
@@ -33,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const collectionName = `${role}s`;
     const userDocRef = doc(db, collectionName, fbUser.uid);
-    const userDoc = await userDoc.get();
+    const userDoc = await getDoc(userDocRef);
 
     if (userDoc.exists()) {
       const data = userDoc.data();
