@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  email: z.string().min(1, { message: "Email or Regimental ID is required." }),
+  email: z.string().min(1, { message: "This field is required." }),
   password: z
     .string()
     .min(1, { message: "Password is required." }),
@@ -29,9 +29,13 @@ const formSchema = z.object({
 
 function LoginFormComponent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  const role = searchParams.get('role');
+  const isCadetLogin = role === 'cadet';
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -51,27 +55,38 @@ function LoginFormComponent() {
         "homeharshit001@gmail.com": { role: "cadet", password: "password123" }
     };
     
-    const user = mockUsers[values.email as keyof typeof mockUsers];
-    
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     let loginSuccess = false;
     let userRole = '';
+    const { email: identifier, password } = values;
 
-    if (user && user.password === values.password) {
+    const userByEmail = mockUsers[identifier as keyof typeof mockUsers];
+
+    if (userByEmail && userByEmail.password === password) {
+        // Standard email login for any role
         loginSuccess = true;
-        userRole = user.role;
-    } else if (values.email.endsWith('@cadet.local')) {
-        const regimentalNumber = values.email.split('@')[0];
-        if (regimentalNumber === values.password) {
-            loginSuccess = true;
-            userRole = 'cadet';
-        }
+        userRole = userByEmail.role;
+    } else if (!identifier.includes('@') && identifier === password) {
+        // Regimental number login where password is the same, assume cadet
+        loginSuccess = true;
+        userRole = 'cadet';
     }
 
 
     if (loginSuccess) {
+        const expectedRole = searchParams.get('role');
+        if (expectedRole && userRole !== expectedRole) {
+            toast({
+                variant: "destructive",
+                title: "Access Denied",
+                description: `These are not valid credentials for the ${expectedRole} portal.`,
+            });
+            setIsLoading(false);
+            return;
+        }
+
         toast({ title: "Login Successful", description: "Redirecting..." });
         
         let path = "/";
@@ -97,6 +112,9 @@ function LoginFormComponent() {
     }
   }
 
+  const label = isCadetLogin ? "Regimental Number" : "Email";
+  const placeholder = isCadetLogin ? "e.g. PB20SDA123456" : "name@example.com";
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -105,9 +123,9 @@ function LoginFormComponent() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email or Username</FormLabel>
+              <FormLabel>{label}</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com or Regimental No." {...field} />
+                <Input placeholder={placeholder} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
