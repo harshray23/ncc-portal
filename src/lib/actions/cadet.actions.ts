@@ -1,10 +1,11 @@
 'use server';
 
-import admin from '@/lib/firebase-admin';
+import type { FirebaseFirestore } from 'firebase-admin/firestore';
+import { getFirebaseAdmin } from '@/lib/firebase-admin';
 import type { UserProfile } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
-function convertDocToProfile(doc: admin.firestore.DocumentSnapshot): UserProfile {
+function convertDocToProfile(doc: FirebaseFirestore.DocumentSnapshot): UserProfile {
     const data = doc.data();
     if (!data) throw new Error('Document data is empty.');
     
@@ -30,16 +31,21 @@ function convertDocToProfile(doc: admin.firestore.DocumentSnapshot): UserProfile
 
 export async function getCadets(): Promise<UserProfile[]> {
   try {
+    const admin = getFirebaseAdmin();
     const usersSnapshot = await admin.firestore().collection('users').where('role', '==', 'cadet').get();
     return usersSnapshot.docs.map(convertDocToProfile);
   } catch (error) {
     console.error("Failed to fetch cadets:", error);
-    return [];
+    if (error instanceof Error) {
+        throw error;
+    }
+    throw new Error('An unexpected error occurred while fetching cadets.');
   }
 }
 
 export async function updateCadet(cadetData: UserProfile): Promise<{ success: boolean; message?: string }> {
   try {
+    const admin = getFirebaseAdmin();
     const { uid, ...dataToUpdate } = cadetData;
     
     const userRef = admin.firestore().collection('users').doc(uid);
@@ -80,6 +86,7 @@ export async function updateCadet(cadetData: UserProfile): Promise<{ success: bo
 
 export async function deleteCadet(uid: string): Promise<{ success: boolean; message?: string }> {
   try {
+    const admin = getFirebaseAdmin();
     // Delete from Firestore
     await admin.firestore().collection('users').doc(uid).delete();
     // Delete from Firebase Auth
@@ -95,6 +102,7 @@ export async function deleteCadet(uid: string): Promise<{ success: boolean; mess
 
 export async function updateCadetYears(uids: string[], year: number): Promise<{ success: boolean; message?: string }> {
     try {
+        const admin = getFirebaseAdmin();
         const batch = admin.firestore().batch();
         const usersRef = admin.firestore().collection('users');
         uids.forEach(uid => {

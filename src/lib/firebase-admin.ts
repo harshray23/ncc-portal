@@ -1,6 +1,11 @@
 import admin from 'firebase-admin';
 
-if (!admin.apps.length) {
+// This function ensures Firebase Admin is initialized only once.
+function getFirebaseAdmin() {
+  if (admin.apps.length) {
+    return admin;
+  }
+
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_PRIVATE_KEY;
@@ -32,6 +37,8 @@ if (!admin.apps.length) {
       'Firebase initialization failed. There is an issue with your Firebase Admin credentials. Please ensure the FIREBASE_PRIVATE_KEY in your .env file is correctly formatted (it should start with "-----BEGIN PRIVATE KEY-----" and be enclosed in double quotes).'
     );
   }
+
+  return admin;
 }
 
-export default admin;
+export { getFirebaseAdmin };

@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import admin from "@/lib/firebase-admin";
+import { getFirebaseAdmin } from "@/lib/firebase-admin";
 
 const addCadetSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -31,6 +31,7 @@ export async function addCadet(prevState: any, formData: FormData) {
   const { email, regimentalNumber, name } = validatedFields.data;
 
   try {
+    const admin = getFirebaseAdmin();
      // Check if a user with this email or regimental number already exists
     const existingEmail = await admin.auth().getUserByEmail(email).catch(() => null);
     if (existingEmail) {

@@ -1,6 +1,6 @@
 "use server";
 
-import admin from "@/lib/firebase-admin";
+import { getFirebaseAdmin } from "@/lib/firebase-admin";
 import { revalidatePath } from "next/cache";
 
 const usersToSeed = [
@@ -44,6 +44,7 @@ const usersToSeed = [
 
 export async function seedDatabase(prevState: any, formData: FormData) {
   try {
+    const admin = getFirebaseAdmin();
     // Check if users already exist to avoid duplication
     const existingUsers = await Promise.all(
       usersToSeed.map(user => admin.auth().getUserByEmail(user.email).catch(() => null))
@@ -105,17 +106,9 @@ export async function seedDatabase(prevState: any, formData: FormData) {
 
   } catch (error: any) {
     console.error("Database Seeding Error:", error);
-    let errorMessage = "An unexpected error occurred during seeding.";
-    // This catches the specific private key parsing error
-    if (error.message?.includes('Failed to parse private key')) {
-      errorMessage =
-        'Failed to parse Firebase private key. Please ensure FIREBASE_PRIVATE_KEY in your .env file is wrapped in double quotes and correctly formatted with "\\n" for newlines.';
-    } else if (error.code === 'app/invalid-credential') {
-        errorMessage = 'Invalid Firebase Admin SDK credentials provided in .env file.';
-    }
     return {
       type: "error",
-      message: errorMessage,
+      message: error.message || "An unexpected error occurred during seeding.",
     };
   }
 }
