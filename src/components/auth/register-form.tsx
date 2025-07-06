@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useEffect, useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
@@ -27,7 +27,7 @@ function SubmitButton() {
 export function RegisterForm() {
     const router = useRouter();
     const { toast } = useToast();
-    const [state, formAction] = useFormState(registerCadet, {
+    const [state, formAction] = useActionState(registerCadet, {
         type: "",
         message: "",
     });
