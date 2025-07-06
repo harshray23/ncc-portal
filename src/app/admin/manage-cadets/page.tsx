@@ -4,14 +4,15 @@ import { useState } from "react";
 import type { UserProfile } from "@/lib/types";
 import * as XLSX from 'xlsx';
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileDown, PlusCircle, Search, Save } from "lucide-react";
+import { FileDown, PlusCircle, Search, Save, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { AddCadetDialog } from "@/components/admin/add-cadet-dialog";
 
 
@@ -29,12 +30,27 @@ export default function ManageCadetsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingCadet, setEditingCadet] = useState<UserProfile | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingCadet, setDeletingCadet] = useState<UserProfile | null>(null);
   const { toast } = useToast();
   
   const handleEditClick = (cadet: UserProfile) => {
     setEditingCadet({ ...cadet });
     setIsEditDialogOpen(true);
   }
+
+  const handleDeleteClick = (cadet: UserProfile) => {
+    setDeletingCadet(cadet);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deletingCadet) return;
+    setCadets(currentCadets => currentCadets.filter(c => c.uid !== deletingCadet.uid));
+    toast({ title: "Success", description: "Cadet has been deleted." });
+    setIsDeleteDialogOpen(false);
+    setDeletingCadet(null);
+  };
 
   const handleSave = () => {
     if (!editingCadet) return;
@@ -146,6 +162,7 @@ export default function ManageCadetsPage() {
                         <TableCell>{cadet.rank}</TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm" onClick={() => handleEditClick(cadet)}>Edit</Button>
+                           <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDeleteClick(cadet)}>Delete</Button>
                         </TableCell>
                     </TableRow>
                     ))
@@ -214,6 +231,23 @@ export default function ManageCadetsPage() {
         onOpenChange={setIsAddDialogOpen}
         onCadetAdded={handleAddCadet}
     />
+
+    {deletingCadet && (
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the account for {deletingCadet.name} and remove their data from our servers.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setDeletingCadet(null)}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteConfirm} className={buttonVariants({ variant: "destructive" })}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    )}
     </>
   );
 }
