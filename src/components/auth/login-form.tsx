@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, Suspense } from "react";
@@ -24,13 +25,6 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { getEmailForRegimentalNumber } from "@/lib/actions/auth.actions";
 
-const formSchema = z.object({
-  identifier: z.string().min(1, { message: "This field is required." }),
-  password: z
-    .string()
-    .min(1, { message: "Password is required." }),
-});
-
 function LoginFormComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,18 +34,50 @@ function LoginFormComponent() {
   
   const role = searchParams.get('role');
   const isCadetLogin = role === 'cadet';
+  const isAdminLogin = role === 'admin';
+
+  const formSchema = z.object({
+    identifier: z.string().min(1, { message: "This field is required." }),
+    password: z
+      .string()
+      .min(1, { message: "Password is required." }),
+    apiKey: z.string().optional(),
+  }).superRefine((data, ctx) => {
+    if (isAdminLogin && (!data.apiKey || data.apiKey.length === 0)) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['apiKey'],
+            message: "API Key is required for admin login.",
+        });
+    }
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       identifier: "",
       password: "",
+      apiKey: "",
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    const { identifier, password } = values;
+    const { identifier, password, apiKey } = values;
+
+    if (isAdminLogin) {
+        // This is a simple gate to prevent unauthorized access.
+        // The key is available on the client-side, but adds a layer of protection.
+        if (apiKey !== process.env.NEXT_PUBLIC_ADMIN_LOGIN_API_KEY) {
+            toast({
+                variant: "destructive",
+                title: "Login Failed",
+                description: "The provided Admin API Key is incorrect.",
+            });
+            setIsLoading(false);
+            return;
+        }
+    }
 
     try {
         let emailToLogin = identifier;
@@ -168,6 +194,21 @@ function LoginFormComponent() {
             </FormItem>
           )}
         />
+        {isAdminLogin && (
+            <FormField
+                control={form.control}
+                name="apiKey"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Admin API Key</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Enter secret key" type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+        )}
         <Button type="submit" className="w-full !mt-6" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isLoading ? "Signing In..." : "Sign In"}
