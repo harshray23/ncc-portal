@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, Suspense } from "react";
@@ -8,10 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import type { UserRole } from "@/lib/types";
 
-import { getFirebase } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -23,7 +19,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { getEmailForRegimentalNumber } from "@/lib/actions/auth.actions";
+
+const formSchema = z.object({
+  identifier: z.string().min(1, { message: "This field is required." }),
+  password: z
+    .string()
+    .min(1, { message: "Password is required." }),
+});
+
+const mockUsers = {
+    'admin': { email: 'elvishray007@gmail.com', password: 'password123' },
+    'manager': { email: 'harshray2007@gmail.com', password: 'password123' },
+    'cadet': { regimentalNumber: 'PB20SDA123457', email: 'homeharshit001@gmail.com', password: 'password123' }
+}
 
 function LoginFormComponent() {
   const router = useRouter();
@@ -34,119 +42,50 @@ function LoginFormComponent() {
   
   const role = searchParams.get('role');
   const isCadetLogin = role === 'cadet';
-  const isAdminLogin = role === 'admin';
-
-  const formSchema = z.object({
-    identifier: z.string().min(1, { message: "This field is required." }),
-    password: z
-      .string()
-      .min(1, { message: "Password is required." }),
-    apiKey: z.string().optional(),
-  }).superRefine((data, ctx) => {
-    if (isAdminLogin && (!data.apiKey || data.apiKey.length === 0)) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['apiKey'],
-            message: "API Key is required for admin login.",
-        });
-    }
-  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       identifier: "",
       password: "",
-      apiKey: "",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    const { identifier, password, apiKey } = values;
+    const { identifier, password } = values;
 
-    if (isAdminLogin) {
-        // This is a simple gate to prevent unauthorized access.
-        // The key is available on the client-side, but adds a layer of protection.
-        if (apiKey !== process.env.NEXT_PUBLIC_ADMIN_LOGIN_API_KEY) {
-            toast({
+    setTimeout(() => {
+        let isAuthenticated = false;
+        let path = "/";
+
+        if (role === 'admin' && identifier === mockUsers.admin.email && password === mockUsers.admin.password) {
+            isAuthenticated = true;
+            path = '/admin/dashboard';
+        } else if (role === 'manager' && identifier === mockUsers.manager.email && password === mockUsers.manager.password) {
+            isAuthenticated = true;
+            path = '/manager/dashboard';
+        } else if (role === 'cadet' && (identifier === mockUsers.cadet.regimentalNumber || identifier === mockUsers.cadet.email) && password === mockUsers.cadet.password) {
+            isAuthenticated = true;
+            path = '/cadet/dashboard';
+        }
+
+        if (isAuthenticated) {
+            toast({ title: "Login Successful", description: "Redirecting..." });
+            router.push(path);
+        } else {
+             toast({
                 variant: "destructive",
                 title: "Login Failed",
-                description: "The provided Admin API Key is incorrect.",
+                description: "Invalid credentials. Please try again.",
             });
-            setIsLoading(false);
-            return;
         }
-    }
-
-    try {
-        let emailToLogin = identifier;
-
-        if (isCadetLogin) {
-            const result = await getEmailForRegimentalNumber(identifier);
-            if (result.error || !result.email) {
-                toast({ variant: "destructive", title: "Login Failed", description: "Invalid Regimental Number." });
-                setIsLoading(false);
-                return;
-            }
-            emailToLogin = result.email;
-        }
-        
-        const { auth } = getFirebase();
-        const userCredential = await signInWithEmailAndPassword(auth, emailToLogin, password);
-        const user = userCredential.user;
-
-        const idTokenResult = await user.getIdTokenResult();
-        const userRole = idTokenResult.claims.role as UserRole;
-
-        const expectedRole = searchParams.get('role');
-        if (expectedRole && userRole !== expectedRole) {
-            await auth.signOut();
-            toast({
-                variant: "destructive",
-                title: "Access Denied",
-                description: `These credentials are not valid for the ${expectedRole} portal.`,
-            });
-            setIsLoading(false);
-            return;
-        }
-
-        toast({ title: "Login Successful", description: "Redirecting..." });
-        
-        let path = "/";
-        switch (userRole) {
-            case "admin":
-              path = "/admin/dashboard";
-              break;
-            case "manager":
-              path = "/manager/dashboard";
-              break;
-            case "cadet":
-              path = "/cadet/dashboard";
-              break;
-        }
-        router.push(path);
-    } catch (error: any) {
-        let errorMessage = "Invalid credentials. Please try again.";
-        if (error.message?.includes('Firebase initialization failed')) {
-            errorMessage = error.message;
-        } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-             errorMessage = "Invalid credentials. Please try again.";
-        } else if (error.code) {
-            errorMessage = error.code.replace('auth/', '').replace(/-/g, ' ');
-        }
-        toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: errorMessage,
-        });
-    } finally {
         setIsLoading(false);
-    }
+    }, 1000);
   }
 
   const label = isCadetLogin ? "Regimental Number" : "Email";
-  const placeholder = isCadetLogin ? "e.g. PB20SDA123456" : "name@example.com";
+  const placeholder = isCadetLogin ? "e.g. PB20SDA123457" : "name@example.com";
 
   return (
     <Form {...form}>
@@ -197,21 +136,6 @@ function LoginFormComponent() {
             </FormItem>
           )}
         />
-        {isAdminLogin && (
-            <FormField
-                control={form.control}
-                name="apiKey"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Admin API Key</FormLabel>
-                    <FormControl>
-                        <Input placeholder="Enter secret key" type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-        )}
         <Button type="submit" className="w-full !mt-6" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isLoading ? "Signing In..." : "Sign In"}

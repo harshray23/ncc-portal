@@ -3,7 +3,6 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { getFirebase } from "@/lib/firebase";
 import {
   ShieldCheck,
   LayoutDashboard,
@@ -77,10 +76,8 @@ export function AppSidebar({ role }: AppSidebarProps) {
 
 
   const handleLogout = () => {
-    const { auth } = getFirebase();
-    auth.signOut().then(() => {
-        router.push("/");
-    });
+    // In a real app, this would also clear tokens/session
+    router.push("/");
   };
 
   return (
