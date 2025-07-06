@@ -1,4 +1,5 @@
-import { Shield, User, Briefcase } from "lucide-react";
+
+import { Shield, User, Briefcase, Database } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -64,6 +65,14 @@ export default function PortalSelectionPage() {
                                 </Link>
                             </CardContent>
                         </Card>
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-border/50 text-center text-sm text-muted-foreground">
+                        <p>First time setting up the application?</p>
+                        <Link href="/setup" className="font-semibold text-primary hover:underline flex items-center justify-center gap-2 mt-2">
+                            <Database className="h-4 w-4" />
+                            Click here to seed the database
+                        </Link>
                     </div>
                 </div>
             </main>
