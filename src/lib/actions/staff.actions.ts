@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import type { FirebaseFirestore } from 'firebase-admin/firestore';
 import { getFirebaseAdmin } from "@/lib/firebase-admin";
 import type { UserProfile } from "../types";
 
@@ -70,6 +71,29 @@ export async function addStaff(prevState: any, formData: FormData) {
   }
 }
 
+// Helper to convert a Firestore doc to a serializable UserProfile
+function docToProfile(doc: FirebaseFirestore.DocumentSnapshot): UserProfile {
+    const data = doc.data()!;
+    const profile: UserProfile = {
+        uid: doc.id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        regimentalNumber: data.regimentalNumber,
+        regimentalNumberEditCount: data.regimentalNumberEditCount,
+        studentId: data.studentId,
+        rank: data.rank,
+        phone: data.phone,
+        whatsapp: data.whatsapp,
+        approved: data.approved,
+        createdAt: data.createdAt.toDate().toISOString(),
+        year: data.year,
+        profilePhotoUrl: data.profilePhotoUrl,
+        unit: data.unit,
+    };
+    return profile;
+}
+
 // Function to get all staff
 export async function getStaff(): Promise<{ admins: UserProfile[], managers: UserProfile[] }> {
     try {
@@ -79,8 +103,8 @@ export async function getStaff(): Promise<{ admins: UserProfile[], managers: Use
         const adminsSnap = await firestore.collection('admins').get();
         const managersSnap = await firestore.collection('managers').get();
 
-        const admins = adminsSnap.docs.map(doc => doc.data() as UserProfile);
-        const managers = managersSnap.docs.map(doc => doc.data() as UserProfile);
+        const admins = adminsSnap.docs.map(docToProfile);
+        const managers = managersSnap.docs.map(docToProfile);
 
         return { admins, managers };
     } catch (error) {
