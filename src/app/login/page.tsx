@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
 import { LoginForm } from '@/components/auth/login-form';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 
@@ -34,7 +35,14 @@ function LoginPageContent() {
 export default function LoginPage() {
   // Wrap with Suspense because LoginForm uses useSearchParams
   return (
-    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center">Loading...</div>}>
+    <Suspense fallback={
+      <div className="flex h-screen w-full items-center justify-center bg-background/80 backdrop-blur-sm">
+        <div className="flex items-center gap-4 text-xl font-semibold text-foreground">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          Loading...
+        </div>
+      </div>
+    }>
       <LoginPageContent />
     </Suspense>
   )
