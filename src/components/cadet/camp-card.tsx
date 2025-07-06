@@ -2,24 +2,40 @@
 
 import { useState } from 'react';
 import { format } from "date-fns";
-import { Flame, MapPin, Calendar, CheckCircle, Hourglass, XCircle } from "lucide-react";
+import { Flame, MapPin, Calendar, CheckCircle, Hourglass, XCircle, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CampRegistrationForm } from "@/components/cadet/camp-registration-form";
-import type { Camp, CampRegistration, RegistrationStatus } from "@/lib/types";
+import type { Camp, RegistrationStatus, UserProfile } from "@/lib/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface CampCardProps {
   camp: Camp;
   registrationStatus?: RegistrationStatus;
-  onRegister: (newRegistration: Omit<CampRegistration, 'id' | 'registeredAt'>) => void;
+  onRegister: () => Promise<void>;
+  currentUser: UserProfile;
 }
 
-export function CampCard({ camp, registrationStatus, onRegister }: CampCardProps) {
-    const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
-
+export function CampCard({ camp, registrationStatus, onRegister, currentUser }: CampCardProps) {
+  const [isRegistering, setIsRegistering] = useState(false);
   const formattedStartDate = format(camp.startDate, "dd MMM yyyy");
   const formattedEndDate = format(camp.endDate, "dd MMM yyyy");
+
+  const handleRegistration = async () => {
+    setIsRegistering(true);
+    await onRegister();
+    setIsRegistering(false);
+  }
 
   const renderFooter = () => {
     if (registrationStatus === 'Accepted') {
@@ -32,9 +48,31 @@ export function CampCard({ camp, registrationStatus, onRegister }: CampCardProps
         return <Button disabled variant="destructive" className="w-full"><XCircle className="mr-2" /> Registration Rejected</Button>
     }
     return (
-        <Button className="w-full" onClick={() => setIsRegistrationOpen(true)}>
-            Register Now
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+             <Button className="w-full" disabled={isRegistering}>
+                {isRegistering && <Loader2 className="mr-2 animate-spin" />}
+                Register Now
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Registration for {camp.name}</AlertDialogTitle>
+              <AlertDialogDescription>
+                Please confirm your details below are correct before submitting your registration.
+                <div className="mt-4 space-y-2 rounded-md border p-4 text-foreground">
+                    <p><strong>Name:</strong> {currentUser.name}</p>
+                    <p><strong>Regt. No:</strong> {currentUser.regimentalNumber}</p>
+                    <p><strong>Year:</strong> {currentUser.year}</p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleRegistration}>Confirm & Register</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
     )
   }
 
@@ -65,12 +103,6 @@ export function CampCard({ camp, registrationStatus, onRegister }: CampCardProps
           {renderFooter()}
         </CardFooter>
       </Card>
-      <CampRegistrationForm 
-        isOpen={isRegistrationOpen}
-        setIsOpen={setIsRegistrationOpen}
-        camp={camp}
-        onRegister={onRegister}
-      />
     </>
   );
 }

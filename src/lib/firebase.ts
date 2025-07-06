@@ -25,7 +25,7 @@ function getFirebase() {
   if (missingVars.length > 0) {
       // This provides a clear error message in the server logs or browser console
       // which is much more helpful than the generic "invalid-api-key" error.
-      throw new Error(`Firebase initialization failed. The following environment variables are missing: ${missingVars.join(', ')}. Please check your .env file.`);
+      throw new Error(`Firebase initialization failed. The following environment variables are missing: ${missingVars.join(', ')}. Please check your .env.local file.`);
   }
 
   const app = initializeApp(firebaseConfig);

@@ -26,10 +26,11 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import type { UserRole } from "@/lib/types";
+import type { UserProfile } from "@/lib/types";
+import { getFirebase } from "@/lib/firebase";
 
 interface AppSidebarProps {
-  role: UserRole;
+  user: UserProfile;
 }
 
 const cadetNav = [
@@ -42,7 +43,6 @@ const cadetNav = [
 const managerNav = [
   { href: "/manager/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/manager/activity", icon: BarChart, label: "Activity Monitor" },
-  { href: "/manager/profile", icon: User, label: "My Profile" },
 ];
 
 const adminNav = [
@@ -51,7 +51,6 @@ const adminNav = [
   { href: "/admin/manage-camps", icon: Flame, label: "Manage Camps" },
   { href: "/admin/manage-attendance", icon: CheckSquare, label: "Manage Attendance" },
   { href: "/admin/manage-year", icon: GraduationCap, label: "Manage Year" },
-  { href: "/admin/profile", icon: User, label: "My Profile" },
   { href: "/admin/settings", icon: Settings, label: "Settings" },
 ];
 
@@ -61,22 +60,15 @@ const navItems = {
   admin: adminNav,
 };
 
-const userDetails = {
-    cadet: { name: "Cdt. Harsh Home", email: "homeharshit001@gmail.com" },
-    manager: { name: "Maj. Vikram Batra", email: "harshray2007@gmail.com" },
-    admin: { name: "Col. Elvish Ray", email: "elvishray007@gmail.com" },
-}
-
-export function AppSidebar({ role }: AppSidebarProps) {
+export function AppSidebar({ user }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const currentNav = navItems[role] || [];
-  const currentUser = userDetails[role];
+  const currentNav = navItems[user.role] || [];
 
-
-  const handleLogout = () => {
-    // In a real app, this would also clear tokens/session
+  const handleLogout = async () => {
+    const { auth } = getFirebase();
+    await auth.signOut();
     router.push("/");
   };
 
@@ -87,7 +79,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
           <ShieldCheck className="h-8 w-8 text-primary" />
           <div className="flex flex-col">
             <h2 className="font-headline text-lg font-semibold text-sidebar-foreground">NCC</h2>
-            <p className="text-xs text-sidebar-foreground/70">{role.charAt(0).toUpperCase() + role.slice(1)} Portal</p>
+            <p className="text-xs text-sidebar-foreground/70">{user.role.charAt(0).toUpperCase() + user.role.slice(1)} Portal</p>
           </div>
         </div>
       </SidebarHeader>
@@ -113,12 +105,12 @@ export function AppSidebar({ role }: AppSidebarProps) {
       <SidebarFooter className="p-2">
          <div className="flex items-center gap-3 rounded-md p-2">
             <Avatar className="h-10 w-10">
-                <AvatarImage src={`https://placehold.co/40x40.png`} alt={currentUser.name} data-ai-hint="profile picture" />
-                <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={user.profilePhotoUrl} alt={user.name} data-ai-hint="profile picture" />
+                <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col overflow-hidden">
-                <p className="truncate text-sm font-medium text-sidebar-foreground">{currentUser.name}</p>
-                <p className="truncate text-xs text-sidebar-foreground/70">{currentUser.email}</p>
+                <p className="truncate text-sm font-medium text-sidebar-foreground">{user.name}</p>
+                <p className="truncate text-xs text-sidebar-foreground/70">{user.email}</p>
             </div>
         </div>
         <Button variant="ghost" className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent" onClick={handleLogout}>

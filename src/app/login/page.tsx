@@ -20,6 +20,9 @@ function LoginPageContent() {
           <LoginForm />
         </CardContent>
         <CardFooter className="flex-col gap-4">
+             <p className="text-center text-sm text-muted-foreground">
+              Don&apos;t have an account? Contact your administrator.
+            </p>
             <p className="text-center text-sm text-muted-foreground">
                 <Link href="/" className="font-semibold text-primary hover:underline">
                     &larr; Back to Portal Selection
@@ -31,9 +34,7 @@ function LoginPageContent() {
   );
 }
 
-
 export default function LoginPage() {
-  // Wrap with Suspense because LoginForm uses useSearchParams
   return (
     <Suspense fallback={
       <div className="flex h-screen w-full items-center justify-center bg-background/80 backdrop-blur-sm">

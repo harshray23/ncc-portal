@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as XLSX from 'xlsx';
 import { format } from "date-fns";
 
@@ -9,71 +9,74 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Calendar as CalendarIcon, Download, Save } from "lucide-react";
+import { Calendar as CalendarIcon, Download, Save, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { UserProfile } from "@/lib/types";
+import type { AttendanceData, UserProfile } from "@/lib/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-
-// Mock data
-const mockCadets: UserProfile[] = [
-  { uid: 'cadet-1', name: 'Ankit Sharma', email: 'ankit.sharma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123456', studentId: '20BCS1024', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 2 },
-  { uid: 'cadet-2', name: 'Priya Verma', email: 'priya.verma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123457', studentId: '20BCS1025', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 2 },
-  { uid: 'cadet-3', name: 'Rahul Singh', email: 'rahul.singh@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123458', studentId: '20BCS1026', rank: 'Lance Corporal', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 1 },
-  { uid: 'cadet-4', name: 'Sneha Gupta', email: 'sneha.gupta@example.com', role: 'cadet', regimentalNumber: 'PB20SWA987654', studentId: '20BCS1027', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 1 },
-];
+import { getAttendanceData, saveAttendance } from "@/lib/actions/attendance.actions";
 
 type AttendanceStatus = "Present" | "Absent" | "Late";
-
-interface AttendanceRecord {
-    cadetId: string;
-    status: AttendanceStatus;
-    remarks: string;
-}
 
 export default function ManageAttendancePage() {
     const { toast } = useToast();
     const [attendanceDate, setAttendanceDate] = useState<Date>(new Date());
     const [filterYear, setFilterYear] = useState<string>("all");
-    const [attendanceRecords, setAttendanceRecords] = useState<Record<string, AttendanceRecord>>(
-        mockCadets.reduce((acc, cadet) => {
-            acc[cadet.uid] = { cadetId: cadet.uid, status: "Present", remarks: "" };
-            return acc;
-        }, {} as Record<string, AttendanceRecord>)
-    );
+    const [attendanceData, setAttendanceData] = useState<AttendanceData | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAttendance = async () => {
+            setLoading(true);
+            const data = await getAttendanceData(attendanceDate);
+            setAttendanceData(data);
+            setLoading(false);
+        };
+        fetchAttendance();
+    }, [attendanceDate]);
 
     const handleStatusChange = (cadetId: string, status: AttendanceStatus) => {
-        setAttendanceRecords(prev => ({
-            ...prev,
-            [cadetId]: { ...prev[cadetId], status }
-        }));
+        if (!attendanceData) return;
+        const newRecords = { ...attendanceData.records };
+        newRecords[cadetId] = { ...newRecords[cadetId], status };
+        setAttendanceData({ ...attendanceData, records: newRecords });
     };
 
     const handleRemarkChange = (cadetId: string, remarks: string) => {
-         setAttendanceRecords(prev => ({
-            ...prev,
-            [cadetId]: { ...prev[cadetId], remarks }
-        }));
+        if (!attendanceData) return;
+        const newRecords = { ...attendanceData.records };
+        newRecords[cadetId] = { ...newRecords[cadetId], remarks };
+        setAttendanceData({ ...attendanceData, records: newRecords });
     };
     
-    const handleSave = () => {
-        console.log("Saving attendance for", format(attendanceDate, "PPP"), attendanceRecords);
-        toast({
-            title: "Attendance Saved",
-            description: "The attendance records have been successfully saved.",
-        });
+    const handleSave = async () => {
+        if (!attendanceData) return;
+        const result = await saveAttendance(attendanceDate, attendanceData.records);
+        if (result.success) {
+            toast({
+                title: "Attendance Saved",
+                description: "The attendance records have been successfully saved.",
+            });
+        } else {
+            toast({
+                variant: 'destructive',
+                title: "Save Failed",
+                description: result.message,
+            });
+        }
     };
 
-    const filteredCadets = mockCadets.filter(cadet => {
+    const filteredCadets = attendanceData?.cadets.filter(cadet => {
         if (filterYear === "all") return true;
         return cadet.year === parseInt(filterYear, 10);
-    });
+    }) || [];
 
     const handleDownload = () => {
+        if (!attendanceData) return;
         const dataToExport = filteredCadets.map(cadet => {
-            const record = attendanceRecords[cadet.uid];
+            const record = attendanceData.records[cadet.uid];
             return {
                 "Date": format(attendanceDate, "yyyy-MM-dd"),
                 "Regimental Number": cadet.regimentalNumber,
@@ -153,7 +156,11 @@ export default function ManageAttendancePage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredCadets.length === 0 ? (
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center h-48"><Loader2 className="h-8 w-8 animate-spin mx-auto" /></TableCell>
+                                </TableRow>
+                            ) : filteredCadets.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center">No cadets found for this year.</TableCell>
                                 </TableRow>
@@ -165,7 +172,7 @@ export default function ManageAttendancePage() {
                                         <TableCell>{cadet.year}</TableCell>
                                         <TableCell>
                                             <Select
-                                                value={attendanceRecords[cadet.uid]?.status}
+                                                value={attendanceData?.records[cadet.uid]?.status}
                                                 onValueChange={(value: AttendanceStatus) => handleStatusChange(cadet.uid, value)}
                                             >
                                                 <SelectTrigger>
@@ -181,7 +188,7 @@ export default function ManageAttendancePage() {
                                         <TableCell>
                                             <Input
                                                 placeholder="Add a reason..."
-                                                value={attendanceRecords[cadet.uid]?.remarks || ''}
+                                                value={attendanceData?.records[cadet.uid]?.remarks || ''}
                                                 onChange={(e) => handleRemarkChange(cadet.uid, e.target.value)}
                                             />
                                         </TableCell>

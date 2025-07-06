@@ -16,69 +16,63 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Edit, Save, X } from "lucide-react";
 import type { UserProfile } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-
-const mockProfile: UserProfile = {
-  uid: 'cadet-1',
-  name: "Cdt. Harsh Home",
-  email: "homeharshit001@gmail.com",
-  role: 'cadet',
-  regimentalNumber: "PB20SDA123457",
-  regimentalNumberEditCount: 0,
-  studentId: "20BCS1025",
-  rank: "Cadet",
-  unit: "10 Bengal Battalion",
-  phone: "0987654321",
-  whatsapp: "0987654321",
-  approved: true,
-  createdAt: new Date(),
-  profilePhotoUrl: "https://placehold.co/80x80.png",
-  year: 2,
-};
+import { useAuth } from "@/components/providers/auth-provider";
+import { updateUserProfile } from "@/lib/actions/user.actions";
 
 export default function ProfilePage() {
+  const { user, loading, refreshUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState<UserProfile>(mockProfile);
-  const [initialData, setInitialData] = useState<UserProfile>(mockProfile);
+  const [profile, setProfile] = useState<Partial<UserProfile>>(user || {});
+  const [initialData, setInitialData] = useState<Partial<UserProfile>>(user || {});
   const { toast } = useToast();
-  
+
+  useState(() => {
+    if (user) {
+      setProfile(user);
+      setInitialData(user);
+    }
+  });
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setProfile((prev) => ({ ...prev, [id]: value } as UserProfile));
+    setProfile((prev) => ({ ...prev, [id]: value }));
   };
   
   const handleSave = async () => {
-    let updatedProfile = { ...profile };
-    if (profile.regimentalNumber !== initialData.regimentalNumber) {
-        if ((initialData.regimentalNumberEditCount || 0) < 2) {
-            updatedProfile.regimentalNumberEditCount = (initialData.regimentalNumberEditCount || 0) + 1;
-        } else {
-             updatedProfile.regimentalNumber = initialData.regimentalNumber; // Revert
-        }
+    if (!profile.uid) return;
+
+    const result = await updateUserProfile(profile as UserProfile);
+
+    if (result.success) {
+      toast({ title: "Success", description: "Profile updated successfully." });
+      await refreshUser(); // Refreshes user data from provider
+      setIsEditing(false);
+    } else {
+      toast({ variant: 'destructive', title: "Error", description: result.message });
     }
-    
-    setProfile(updatedProfile);
-    toast({ title: "Success", description: "Profile updated successfully." });
-    setInitialData(updatedProfile);
-    setIsEditing(false);
   };
   
   const handleCancel = () => {
-    setProfile(initialData); // Reset changes
+    setProfile(initialData);
     setIsEditing(false);
   };
+
+  if (loading || !user) {
+    return <p>Loading profile...</p>
+  }
 
   return (
     <Card className="max-w-4xl mx-auto">
       <CardHeader>
         <div className="flex items-center space-x-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage src={profile.profilePhotoUrl} alt={profile.name} data-ai-hint="profile picture" />
-            <AvatarFallback>{profile.name?.charAt(0)}</AvatarFallback>
+            <AvatarImage src={user.profilePhotoUrl} alt={user.name} data-ai-hint="profile picture" />
+            <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <CardTitle className="text-2xl font-headline">{profile.name}</CardTitle>
+            <CardTitle className="text-2xl font-headline">{user.name}</CardTitle>
             <CardDescription>
-              {profile.rank} | {profile.unit || 'N/A'}
+              {user.rank} | {user.unit || 'N/A'}
             </CardDescription>
           </div>
         </div>
@@ -87,11 +81,11 @@ export default function ProfilePage() {
         <form className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
-            <Input id="name" value={profile.name} onChange={handleInputChange} disabled={!isEditing} />
+            <Input id="name" value={profile.name || ''} onChange={handleInputChange} disabled={!isEditing} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
-            <Input id="email" type="email" value={profile.email} onChange={handleInputChange} disabled={!isEditing} />
+            <Input id="email" type="email" value={profile.email || ''} onChange={handleInputChange} disabled />
           </div>
           <div className="space-y-2">
             <Label htmlFor="regimentalNumber">
@@ -100,27 +94,27 @@ export default function ProfilePage() {
                     ({(profile.regimentalNumberEditCount ?? 0) < 2 ? `${2 - (profile.regimentalNumberEditCount ?? 0)} edits remaining` : 'No edits remaining'})
                 </span>
             </Label>
-            <Input id="regimentalNumber" value={profile.regimentalNumber}  onChange={handleInputChange} disabled={!isEditing || (profile.regimentalNumberEditCount ?? 0) >= 2} />
+            <Input id="regimentalNumber" value={profile.regimentalNumber || ''}  onChange={handleInputChange} disabled={!isEditing || (profile.regimentalNumberEditCount ?? 0) >= 2} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="studentId">Student ID</Label>
-            <Input id="studentId" value={profile.studentId} disabled />
+            <Input id="studentId" value={profile.studentId || ''} disabled />
           </div>
           <div className="space-y-2">
             <Label htmlFor="rank">Rank</Label>
-            <Input id="rank" value={profile.rank} onChange={handleInputChange} disabled={!isEditing} />
+            <Input id="rank" value={profile.rank || ''} onChange={handleInputChange} disabled={!isEditing} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="unit">Unit</Label>
-            <Input id="unit" value={profile.unit} onChange={handleInputChange} disabled={!isEditing} />
+            <Input id="unit" value={profile.unit || ''} onChange={handleInputChange} disabled={!isEditing} />
           </div>
            <div className="space-y-2">
             <Label htmlFor="phone">Phone</Label>
-            <Input id="phone" value={profile.phone} onChange={handleInputChange} disabled={!isEditing} />
+            <Input id="phone" value={profile.phone || ''} onChange={handleInputChange} disabled={!isEditing} />
           </div>
            <div className="space-y-2">
             <Label htmlFor="whatsapp">WhatsApp</Label>
-            <Input id="whatsapp" value={profile.whatsapp} onChange={handleInputChange} disabled={!isEditing} />
+            <Input id="whatsapp" value={profile.whatsapp || ''} onChange={handleInputChange} disabled={!isEditing} />
           </div>
         </form>
       </CardContent>

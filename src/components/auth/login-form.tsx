@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +20,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { getFirebase } from "@/lib/firebase";
+import { getEmailForRegimentalNumber } from "@/lib/actions/auth.actions";
 
 const formSchema = z.object({
   identifier: z.string().min(1, { message: "This field is required." }),
@@ -26,12 +29,6 @@ const formSchema = z.object({
     .string()
     .min(1, { message: "Password is required." }),
 });
-
-const mockUsers = {
-    'admin': { email: 'elvishray007@gmail.com', password: 'password123' },
-    'manager': { email: 'harshray2007@gmail.com', password: 'password123' },
-    'cadet': { regimentalNumber: 'PB20SDA123457', email: 'homeharshit001@gmail.com', password: 'password123' }
-}
 
 function LoginFormComponent() {
   const router = useRouter();
@@ -51,41 +48,62 @@ function LoginFormComponent() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     const { identifier, password } = values;
 
-    setTimeout(() => {
-        let isAuthenticated = false;
-        let path = "/";
+    try {
+      const { auth } = getFirebase();
+      let emailToLogin = identifier;
 
-        if (role === 'admin' && identifier === mockUsers.admin.email && password === mockUsers.admin.password) {
-            isAuthenticated = true;
-            path = '/admin/dashboard';
-        } else if (role === 'manager' && identifier === mockUsers.manager.email && password === mockUsers.manager.password) {
-            isAuthenticated = true;
-            path = '/manager/dashboard';
-        } else if (role === 'cadet' && (identifier === mockUsers.cadet.regimentalNumber || identifier === mockUsers.cadet.email) && password === mockUsers.cadet.password) {
-            isAuthenticated = true;
-            path = '/cadet/dashboard';
-        }
-
-        if (isAuthenticated) {
-            toast({ title: "Login Successful", description: "Redirecting..." });
-            router.push(path);
+      if (isCadetLogin) {
+        const result = await getEmailForRegimentalNumber(identifier);
+        if (result.email) {
+          emailToLogin = result.email;
         } else {
-             toast({
-                variant: "destructive",
-                title: "Login Failed",
-                description: "Invalid credentials. Please try again.",
-            });
+          throw new Error(result.error || "Invalid Regimental Number.");
         }
+      }
+
+      const userCredential = await signInWithEmailAndPassword(auth, emailToLogin, password);
+      const token = await userCredential.user.getIdTokenResult();
+      const userRole = token.claims.role;
+
+      let path = "/";
+      if (userRole === 'admin' && role === 'admin') path = '/admin/dashboard';
+      else if (userRole === 'manager' && role === 'manager') path = '/manager/dashboard';
+      else if (userRole === 'cadet' && role === 'cadet') path = '/cadet/dashboard';
+      else {
+        throw new Error("You do not have permission to access this portal.");
+      }
+      
+      toast({ title: "Login Successful", description: "Redirecting..." });
+      router.push(path);
+      router.refresh(); // Refresh server components
+
+    } catch (error: any) {
+        console.error("Login failed:", error);
+        let description = "Invalid credentials. Please try again.";
+        if (error.code === 'auth/invalid-credential') {
+            description = "The email or password you entered is incorrect.";
+        } else if (error.message.includes("permission")) {
+            description = error.message;
+        } else if (error.message.includes("Regimental Number")) {
+          description = error.message;
+        }
+        
+        toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description,
+        });
+    } finally {
         setIsLoading(false);
-    }, 1000);
+    }
   }
 
   const label = isCadetLogin ? "Regimental Number" : "Email";
-  const placeholder = isCadetLogin ? "e.g. PB20SDA123457" : "name@example.com";
+  const placeholder = isCadetLogin ? "e.g. WB2024SDIA9160860" : "name@example.com";
 
   return (
     <Form {...form}>

@@ -6,29 +6,14 @@ import { getFirebaseAdmin } from '@/lib/firebase-admin';
 export async function getEmailForRegimentalNumber(regimentalNumber: string): Promise<{ email: string | null; error?: string }> {
   try {
     const admin = getFirebaseAdmin();
-    const usersRef = admin.firestore().collection('users');
-    const snapshot = await usersRef.get(); // Fetch all users
+    const snapshot = await admin.firestore().collection('cadets').where('regimentalNumber', '==', regimentalNumber).limit(1).get();
 
     if (snapshot.empty) {
-      return { email: null };
+      return { email: null, error: 'No cadet found with that regimental number.' };
     }
     
-    let foundEmail: string | null = null;
-    // Manually filter through the documents
-    for (const doc of snapshot.docs) {
-        const data = doc.data();
-        if (data.regimentalNumber === regimentalNumber) {
-            foundEmail = data.email;
-            break; // Stop searching once found
-        }
-    }
-
-    if (foundEmail) {
-        return { email: foundEmail };
-    } else {
-        // If not found after checking all documents
-        return { email: null };
-    }
+    const cadet = snapshot.docs[0].data();
+    return { email: cadet.email };
 
   } catch (error: any) {
     console.error("Error fetching email for regimental number:", error);

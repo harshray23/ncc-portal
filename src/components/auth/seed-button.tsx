@@ -34,23 +34,27 @@ function SubmitButton() {
 
 export function SeedButton() {
   const { toast } = useToast();
-  const [state, formAction] = useActionState(seedDatabase, {
-    type: "",
-    message: "",
-  });
+  const [state, formAction] = useActionState(seedDatabase, null);
 
   useEffect(() => {
+    if (!state) return;
     if (state.type === "success" || state.type === 'info') {
       toast({
         title: state.type === 'success' ? "Success" : "Info",
         description: state.message,
       });
+    } else if (state.type === 'error') {
+        toast({
+            variant: 'destructive',
+            title: 'Seeding Failed',
+            description: state.message,
+        });
     }
   }, [state, toast]);
 
   return (
     <form action={formAction}>
-      {state.type === "error" && (
+      {state?.type === "error" && (
         <Alert variant="destructive" className="mb-4">
           <AlertTitle>Seeding Failed</AlertTitle>
           <AlertDescription>{state.message}</AlertDescription>

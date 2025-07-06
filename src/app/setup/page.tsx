@@ -20,7 +20,7 @@ export default function SetupPage() {
                 <Info className="h-4 w-4" />
                 <AlertTitle>Important</AlertTitle>
                 <AlertDescription>
-                    Clicking this button will create an admin, manager, and cadet user. This should only be done once.
+                    This will create an admin, manager, and cadet user. This should only be done once. Before clicking, ensure your .env.local file is filled with your Firebase credentials.
                 </AlertDescription>
             </Alert>
             <SeedButton />

@@ -5,44 +5,50 @@ import { revalidatePath } from "next/cache";
 
 const usersToSeed = [
     {
-        email: "elvishray007@gmail.com",
-        password: "password123",
-        displayName: "Col. Elvish Ray",
+        email: "raj2105pattanayak@gmail.com",
+        password: "aec@123",
+        displayName: "Rajendra Pattanayak",
         role: "admin",
         regimentalNumber: "ADMIN-001",
         studentId: "N/A",
         rank: "Colonel",
-        phone: "1234567890",
-        whatsapp: "1234567890",
+        phone: "N/A",
+        whatsapp: "N/A",
         approved: true,
+        unit: 'HQ',
+        year: 0,
     },
     {
-        email: "harshray2007@gmail.com",
-        password: "password123",
-        displayName: "Maj. Vikram Batra",
+        email: "manager.harshray@example.com",
+        password: "123456789",
+        displayName: "Manager Harsh Ray",
         role: "manager",
         regimentalNumber: "MANAGER-001",
         studentId: "N/A",
         rank: "Major",
-        phone: "1234567890",
-        whatsapp: "1234567890",
+        phone: "N/A",
+        whatsapp: "N/A",
         approved: true,
+        unit: 'HQ',
+        year: 0,
     },
     {
-        email: "homeharshit001@gmail.com",
-        password: "password123",
-        displayName: "Cdt. Harsh Home",
+        email: "harshray2007@gmail.com",
+        password: "123456789",
+        displayName: "Harsh Ray",
         role: "cadet",
-        regimentalNumber: "PB20SDA123457",
-        studentId: "20BCS1025",
+        regimentalNumber: "WB2024SDIA9160860",
+        studentId: "AEC/2024/0808",
         rank: "Cadet",
-        phone: "0987654321",
-        whatsapp: "0987654321",
+        phone: "9002555217",
+        whatsapp: "9002555217",
         approved: true,
+        unit: '10 Bengal Battalion',
+        year: 1,
     }
 ];
 
-export async function seedDatabase(prevState: any, formData: FormData) {
+export async function seedDatabase() {
   try {
     const admin = getFirebaseAdmin();
     // Check if users already exist to avoid duplication
@@ -52,20 +58,12 @@ export async function seedDatabase(prevState: any, formData: FormData) {
 
     const usersThatExist = existingUsers.filter(u => u !== null);
     
-    if (usersThatExist.length === usersToSeed.length) {
+    if (usersThatExist.length > 0) {
       return {
         type: "info",
         message: "Database has already been seeded. No new users were created.",
       };
     }
-    
-    if (usersThatExist.length > 0) {
-        return {
-            type: 'error',
-            message: `Some seed users already exist. Please clear the database in Firebase Console before seeding to avoid conflicts.`
-        }
-    }
-
 
     const createdUsers = await Promise.all(
       usersToSeed.map(user => admin.auth().createUser({
@@ -76,27 +74,28 @@ export async function seedDatabase(prevState: any, formData: FormData) {
       }))
     );
     
-    await Promise.all(
-        createdUsers.map((userRecord, index) => {
-            const user = usersToSeed[index];
-            return Promise.all([
-                admin.auth().setCustomUserClaims(userRecord.uid, { role: user.role }),
-                admin.firestore().collection("users").doc(userRecord.uid).set({
-                    uid: userRecord.uid,
-                    email: user.email,
-                    name: user.displayName,
-                    role: user.role,
-                    regimentalNumber: user.regimentalNumber,
-                    studentId: user.studentId,
-                    rank: user.rank,
-                    phone: user.phone,
-                    whatsapp: user.whatsapp,
-                    approved: user.approved,
-                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                })
-            ]);
-        })
-    );
+    const firestore = admin.firestore();
+    const batch = firestore.batch();
+
+    createdUsers.forEach((userRecord, index) => {
+        const userData = usersToSeed[index];
+        const { password, ...profileData } = userData;
+        const collectionName = `${userData.role}s`; // admins, cadets, managers
+        const docRef = firestore.collection(collectionName).doc(userRecord.uid);
+        
+        batch.set(docRef, {
+            ...profileData,
+            uid: userRecord.uid,
+            createdAt: new Date(),
+            regimentalNumberEditCount: 0,
+            profilePhotoUrl: `https://placehold.co/128x128.png?text=${userData.displayName.charAt(0)}`
+        });
+        
+        // Also set custom claims on the user for role-based access control
+        admin.auth().setCustomUserClaims(userRecord.uid, { role: userData.role });
+    });
+
+    await batch.commit();
     
     revalidatePath("/");
     return {

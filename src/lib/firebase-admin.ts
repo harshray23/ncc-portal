@@ -18,7 +18,7 @@ function getFirebaseAdmin() {
     ].filter(Boolean).join(', ');
     
     throw new Error(
-      `Firebase initialization failed. The following environment variables are missing in your .env file: ${missingVars}. Please copy them from your Firebase project settings.`
+      `Firebase initialization failed. The following environment variables are missing in your .env.local file: ${missingVars}. Please copy them from your Firebase project settings.`
     );
   }
 
@@ -32,9 +32,9 @@ function getFirebaseAdmin() {
     });
   } catch (error: any) {
     console.error("Firebase Admin Initialization Error:", error);
-    // This often happens if the private key format is wrong in the .env file
+    // This often happens if the private key format is wrong in the .env.local file
     throw new Error(
-      'Firebase initialization failed. There is an issue with your Firebase Admin credentials. Please ensure the FIREBASE_PRIVATE_KEY in your .env file is correctly formatted (it should start with "-----BEGIN PRIVATE KEY-----" and be enclosed in double quotes).'
+      'Firebase initialization failed. There is an issue with your Firebase Admin credentials. Please ensure the FIREBASE_PRIVATE_KEY in your .env.local file is correctly formatted (it should start with "-----BEGIN PRIVATE KEY-----" and be enclosed in double quotes).'
     );
   }
 

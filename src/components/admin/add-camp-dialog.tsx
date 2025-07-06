@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useActionState, useState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
 import { CalendarIcon, Loader2 } from 'lucide-react';
@@ -16,142 +14,112 @@ import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import type { Camp } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-
-const campSchema = z.object({
-  name: z.string().min(1, 'Camp name is required.'),
-  location: z.string().min(1, 'Location is required.'),
-  description: z.string().min(1, 'Description is required.'),
-  dates: z.object({
-    from: z.date(),
-    to: z.date(),
-  }),
-});
+import { createCamp } from '@/lib/actions/camp.actions';
 
 interface AddCampDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onCampAdded: (newCamp: Camp) => void;
 }
 
-export function AddCampDialog({ isOpen, onOpenChange, onCampAdded }: AddCampDialogProps) {
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Create Camp
+        </Button>
+    )
+}
+
+export function AddCampDialog({ isOpen, onOpenChange }: AddCampDialogProps) {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register, handleSubmit, control, formState: { errors }, reset } = useForm({
-    resolver: zodResolver(campSchema),
-    defaultValues: {
-      name: '',
-      location: '',
-      description: '',
-      dates: {
-        from: new Date(),
-        to: addDays(new Date(), 9),
-      },
-    },
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 9),
   });
 
-  const onSubmit = (data: z.infer<typeof campSchema>) => {
-    setIsSubmitting(true);
-    const newCamp: Camp = {
-      id: `CAMP-${Date.now()}`,
-      name: data.name,
-      location: data.location,
-      description: data.description,
-      startDate: data.dates.from,
-      endDate: data.dates.to,
-      status: 'Upcoming',
-    };
-    
-    // Simulate API call
-    setTimeout(() => {
-        onCampAdded(newCamp);
-        toast({ title: "Success", description: "New camp has been created." });
-        setIsSubmitting(false);
-        onOpenChange(false);
-        reset();
-    }, 1000);
-  };
+   const [state, formAction] = useActionState(async (prevState: any, formData: FormData) => {
+        if (!dateRange?.from || !dateRange?.to) {
+            return { type: 'error', message: 'Please select a valid date range.' };
+        }
+        formData.append('startDate', dateRange.from.toISOString());
+        formData.append('endDate', dateRange.to.toISOString());
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      reset();
-    }
-    onOpenChange(open);
-  };
+        const result = await createCamp(prevState, formData);
+        if (result?.type === 'success') {
+            toast({ title: 'Success', description: 'New camp has been created.' });
+            onOpenChange(false);
+        } else if (result?.type === 'error') {
+            toast({ variant: 'destructive', title: 'Error', description: result.message });
+        }
+        return result;
+    }, null);
+
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Camp</DialogTitle>
           <DialogDescription>Fill in the details for the new camp below.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form action={formAction} className="space-y-4">
           <div>
             <Label htmlFor="name">Camp Name</Label>
-            <Input id="name" {...register('name')} />
-            {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
+            <Input id="name" name="name" required />
+            {state?.errors?.name && <p className="text-sm text-destructive mt-1">{state.errors.name[0]}</p>}
           </div>
           <div>
             <Label htmlFor="location">Location</Label>
-            <Input id="location" {...register('location')} />
-            {errors.location && <p className="text-sm text-destructive mt-1">{errors.location.message}</p>}
+            <Input id="location" name="location" required />
+            {state?.errors?.location && <p className="text-sm text-destructive mt-1">{state.errors.location[0]}</p>}
           </div>
           <div>
             <Label htmlFor="description">Description</Label>
-            <Textarea id="description" {...register('description')} />
-            {errors.description && <p className="text-sm text-destructive mt-1">{errors.description.message}</p>}
+            <Textarea id="description" name="description" required />
+            {state?.errors?.description && <p className="text-sm text-destructive mt-1">{state.errors.description[0]}</p>}
           </div>
           <div>
             <Label>Camp Dates</Label>
-            <Controller
-              name="dates"
-              control={control}
-              render={({ field }) => (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {field.value?.from ? (
-                        field.value.to ? (
-                          <>
-                            {format(field.value.from, "LLL dd, y")} -{" "}
-                            {format(field.value.to, "LLL dd, y")}
-                          </>
-                        ) : (
-                          format(field.value.from, "LLL dd, y")
-                        )
-                      ) : (
-                        <span>Pick a date range</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="range"
-                      defaultMonth={field.value.from}
-                      selected={{ from: field.value.from, to: field.value.to }}
-                      onSelect={(range) => field.onChange({ from: range?.from, to: range?.to })}
-                      numberOfMonths={2}
-                    />
-                  </PopoverContent>
-                </Popover>
-              )}
-            />
+            <Popover>
+                <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                    )}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange?.from ? (
+                    dateRange.to ? (
+                        <>
+                        {format(dateRange.from, "LLL dd, y")} -{" "}
+                        {format(dateRange.to, "LLL dd, y")}
+                        </>
+                    ) : (
+                        format(dateRange.from, "LLL dd, y")
+                    )
+                    ) : (
+                    <span>Pick a date range</span>
+                    )}
+                </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
+                />
+                </PopoverContent>
+            </Popover>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Camp
-            </Button>
+            <SubmitButton />
           </DialogFooter>
         </form>
       </DialogContent>

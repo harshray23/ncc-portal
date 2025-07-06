@@ -6,16 +6,16 @@ export interface UserProfile {
   name: string;
   email: string;
   regimentalNumber: string;
-  regimentalNumberEditCount?: number;
+  regimentalNumberEditCount: number;
   studentId: string;
   rank: string;
-  unit?: string;
+  unit: string;
   phone: string;
   whatsapp: string;
   approved: boolean;
   profilePhotoUrl?: string;
   createdAt: Date; 
-  year?: number;
+  year: number;
 }
 
 export interface Camp {
@@ -43,14 +43,21 @@ export interface CampRegistration {
 
 
 export interface AttendanceRecord {
-    id: string;
-    cadetId: string;
-    cadetName: string;
-    regimentalNumber: string;
-    eventName: string;
+    id: string; // YYYY-MM-DD
     date: Date;
-    status: 'Present' | 'Absent' | 'On-Leave' | 'Late';
-    remarks?: string;
+    records: Record<string, {
+      cadetId: string;
+      status: 'Present' | 'Absent' | 'On-Leave' | 'Late';
+      remarks: string;
+    }>
+}
+
+export interface AttendanceData {
+  cadets: UserProfile[];
+  records: Record<string, {
+      status: 'Present' | 'Absent' | 'Late';
+      remarks: string;
+  }>;
 }
 
 export interface AppNotification {

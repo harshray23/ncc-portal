@@ -11,6 +11,7 @@ import {
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import type { UserRole } from '@/lib/types';
 import { ShieldCheck } from 'lucide-react';
+import { useAuth } from '@/components/providers/auth-provider';
 
 export default function AuthenticatedLayout({
   children,
@@ -21,14 +22,27 @@ export default function AuthenticatedLayout({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(true);
+  const { user, loading } = useAuth();
   
-  // NOTE: All live authentication and data fetching logic has been removed from this component
-  // to allow for UI testing with mock data. This will need to be reconnected to Firebase
-  // for a production environment. For now, it simply renders the layout and child pages.
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>
+  }
+  
+  if (!user || user.role !== role) {
+    // In a real app, you'd probably redirect. For now, just showing a message.
+    return <div className="flex h-screen items-center justify-center">Access Denied. You do not have permission for this page.</div>
+  }
 
   const getTitle = (path: string) => {
     const segments = path.split('/').filter(Boolean);
     if (segments.length === 0) return 'Dashboard';
+    
+    // Handle dynamic routes like /admin/manage-camps/[id]
+    if (segments.length > 2 && segments[segments.length - 2].startsWith('manage-')) {
+      const feature = segments[segments.length - 2].replace('manage-', '');
+      return `${feature.charAt(0).toUpperCase() + feature.slice(1)} Details`;
+    }
+
     const lastSegment = segments[segments.length - 1];
     return lastSegment.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
@@ -37,7 +51,7 @@ export default function AuthenticatedLayout({
     <SidebarProvider defaultOpen open={open} onOpenChange={setOpen}>
       <div className="flex h-screen w-full">
         <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-          <AppSidebar role={role} />
+          <AppSidebar user={user} />
         </Sidebar>
         <SidebarInset className="flex flex-col">
           <header className="flex h-14 items-center gap-4 border-b bg-card px-6">
