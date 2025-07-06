@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 const addCadetSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email address"),
   regimentalNumber: z.string().min(1, "Regimental number is required"),
   studentId: z.string().min(1, "Student ID is required"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
@@ -28,10 +29,7 @@ export async function addCadet(prevState: any, formData: FormData) {
   try {
     // In a real app, you would create the user in Firebase Auth and Firestore here.
     // For mock mode, we just return the data to the client to update the UI.
-    const newCadetData = {
-        ...validatedFields.data,
-        email: `${validatedFields.data.regimentalNumber}@cadet.local`
-    };
+    const newCadetData = validatedFields.data;
     
     console.log("Mock adding cadet:", newCadetData.email);
     

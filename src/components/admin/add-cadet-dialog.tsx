@@ -57,7 +57,7 @@ export function AddCadetDialog({ isOpen, onOpenChange, onCadetAdded }: AddCadetD
                 <DialogHeader>
                     <DialogTitle>Add New Cadet</DialogTitle>
                     <DialogDescription>
-                        The regimental number will be their password and part of their email.
+                        The cadet's initial password will be their Regimental Number.
                     </DialogDescription>
                 </DialogHeader>
                 <form ref={formRef} action={formAction} className="space-y-4">
@@ -74,11 +74,16 @@ export function AddCadetDialog({ isOpen, onOpenChange, onCadetAdded }: AddCadetD
                             {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
                         </div>
                         <div className="space-y-2">
+                            <Label htmlFor="email">Email Address</Label>
+                            <Input id="email" name="email" type="email" placeholder="name@example.com" required />
+                            {state.errors?.email && <p className="text-sm text-destructive">{state.errors.email[0]}</p>}
+                        </div>
+                        <div className="space-y-2">
                             <Label htmlFor="rank">Rank</Label>
                             <Input id="rank" name="rank" placeholder="Cadet" required />
                             {state.errors?.rank && <p className="text-sm text-destructive">{state.errors.rank[0]}</p>}
                         </div>
-                         <div className="space-y-2 md:col-span-2">
+                         <div className="space-y-2">
                             <Label htmlFor="regimentalNumber">Regimental Number</Label>
                             <Input id="regimentalNumber" name="regimentalNumber" placeholder="PB20SDA123456" required />
                             {state.errors?.regimentalNumber && <p className="text-sm text-destructive">{state.errors.regimentalNumber[0]}</p>}
@@ -93,7 +98,7 @@ export function AddCadetDialog({ isOpen, onOpenChange, onCadetAdded }: AddCadetD
                             <Input id="phone" name="phone" type="tel" required />
                             {state.errors?.phone && <p className="text-sm text-destructive">{state.errors.phone[0]}</p>}
                         </div>
-                         <div className="space-y-2">
+                         <div className="space-y-2 md:col-span-2">
                             <Label htmlFor="whatsapp">WhatsApp Number</Label>
                             <Input id="whatsapp" name="whatsapp" type="tel" required />
                             {state.errors?.whatsapp && <p className="text-sm text-destructive">{state.errors.whatsapp[0]}</p>}
