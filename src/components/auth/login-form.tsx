@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email." }),
+  email: z.string().min(1, { message: "Email or Regimental ID is required." }),
   password: z
     .string()
     .min(1, { message: "Password is required." }),
@@ -52,15 +52,30 @@ function LoginFormComponent() {
     };
     
     const user = mockUsers[values.email as keyof typeof mockUsers];
-
+    
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
+    let loginSuccess = false;
+    let userRole = '';
+
     if (user && user.password === values.password) {
+        loginSuccess = true;
+        userRole = user.role;
+    } else if (values.email.endsWith('@cadet.local')) {
+        const regimentalNumber = values.email.split('@')[0];
+        if (regimentalNumber === values.password) {
+            loginSuccess = true;
+            userRole = 'cadet';
+        }
+    }
+
+
+    if (loginSuccess) {
         toast({ title: "Login Successful", description: "Redirecting..." });
         
         let path = "/";
-        switch (user.role) {
+        switch (userRole) {
             case "admin":
               path = "/admin/dashboard";
               break;
@@ -76,7 +91,7 @@ function LoginFormComponent() {
         toast({
             variant: "destructive",
             title: "Login Failed",
-            description: "Invalid email or password. Please try again.",
+            description: "Invalid credentials. Please try again.",
         });
         setIsLoading(false);
     }
@@ -90,9 +105,9 @@ function LoginFormComponent() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email Address</FormLabel>
+              <FormLabel>Email or Username</FormLabel>
               <FormControl>
-                <Input placeholder="name@example.com" {...field} />
+                <Input placeholder="name@example.com or Regimental No." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

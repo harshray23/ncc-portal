@@ -46,10 +46,7 @@ export default function PortalSelectionPage() {
                             </CardHeader>
                             <CardContent className="flex flex-col gap-2">
                                 <Link href="/login?role=cadet" className="w-full" passHref>
-                                     <Button variant="outline" className="w-full">Login as Cadet</Button>
-                                </Link>
-                                <Link href="/register" className="w-full" passHref>
-                                     <Button variant="default" className="w-full">Register as Cadet</Button>
+                                     <Button variant="default" className="w-full">Login as Cadet</Button>
                                 </Link>
                             </CardContent>
                         </Card>

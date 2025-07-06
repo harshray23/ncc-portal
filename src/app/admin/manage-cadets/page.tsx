@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { AddCadetDialog } from "@/components/admin/add-cadet-dialog";
 
 
 const mockCadets: UserProfile[] = [
@@ -46,6 +47,7 @@ export default function ManageCadetsPage() {
   const [cadets, setCadets] = useState<UserProfile[]>(mockCadets);
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingCadet, setEditingCadet] = useState<UserProfile | null>(null);
   const { toast } = useToast();
 
@@ -86,6 +88,20 @@ export default function ManageCadetsPage() {
     setIsEditDialogOpen(false);
     setEditingCadet(null);
   }
+  
+  const handleAddCadet = (newCadetData: Omit<UserProfile, 'uid' | 'createdAt' | 'approved' | 'role' | 'regimentalNumberEditCount'>) => {
+    const newCadet: UserProfile = {
+      ...newCadetData,
+      uid: `cadet-${Date.now()}`, // mock UID
+      role: 'cadet',
+      approved: true, // New cadets added by admin are pre-approved
+      createdAt: new Date(),
+      regimentalNumberEditCount: 0,
+    };
+    setCadets(currentCadets => [newCadet, ...currentCadets]);
+    setIsAddDialogOpen(false);
+    toast({ title: "Success", description: "New cadet added successfully." });
+  };
 
   const filteredCadets = cadets.filter(cadet => 
     cadet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -121,7 +137,7 @@ export default function ManageCadetsPage() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleDownload}><FileDown className="mr-2"/> Download Details (XLSX)</Button>
-            <Button disabled><PlusCircle className="mr-2"/> Add Cadet</Button>
+            <Button onClick={() => setIsAddDialogOpen(true)}><PlusCircle className="mr-2"/> Add Cadet</Button>
           </div>
         </div>
       </CardHeader>
@@ -232,6 +248,12 @@ export default function ManageCadetsPage() {
             </DialogContent>
         </Dialog>
     )}
+    
+    <AddCadetDialog 
+        isOpen={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onCadetAdded={handleAddCadet}
+    />
     </>
   );
 }

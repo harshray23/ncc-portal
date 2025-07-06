@@ -3,10 +3,8 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 
-const registerSchema = z.object({
+const addCadetSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
   regimentalNumber: z.string().min(1, "Regimental number is required"),
   studentId: z.string().min(1, "Student ID is required"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
@@ -14,8 +12,8 @@ const registerSchema = z.object({
   rank: z.string().min(1, "Rank is required"),
 });
 
-export async function registerCadet(prevState: any, formData: FormData) {
-  const validatedFields = registerSchema.safeParse(
+export async function addCadet(prevState: any, formData: FormData) {
+  const validatedFields = addCadetSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
 
@@ -28,27 +26,32 @@ export async function registerCadet(prevState: any, formData: FormData) {
   }
   
   try {
-    // NOTE: Firebase Admin SDK calls are disabled for mock data mode.
-    // This action simulates a successful registration without creating a real user.
-    console.log("Mock registration for:", validatedFields.data.email);
+    // In a real app, you would create the user in Firebase Auth and Firestore here.
+    // For mock mode, we just return the data to the client to update the UI.
+    const newCadetData = {
+        ...validatedFields.data,
+        email: `${validatedFields.data.regimentalNumber}@cadet.local`
+    };
+    
+    console.log("Mock adding cadet:", newCadetData.email);
+    
+    revalidatePath('/admin/manage-cadets');
 
     return {
       type: "success",
-      message: "Registration successful! An admin will approve your account shortly (mock response).",
+      message: "Cadet added successfully.",
+      data: newCadetData
     };
 
   } catch (error: any) {
-    let errorMessage = "An unexpected error occurred.";
-    if (error.code === "auth/email-already-exists") {
-      errorMessage = "This email address is already in use.";
-    }
-    console.error("Registration Error:", error);
+    console.error("Add Cadet Error:", error);
     return {
       type: "error",
-      message: errorMessage,
+      message: "An unexpected error occurred while adding the cadet.",
     };
   }
 }
+
 
 export async function approveCadet(uid: string) {
     try {
@@ -60,4 +63,38 @@ export async function approveCadet(uid: string) {
         console.error('Error approving cadet:', error);
         return { success: false, message: 'Failed to approve cadet (mock response).' };
     }
+}
+
+const registerCadetSchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  rank: z.string().min(1, "Rank is required"),
+  regimentalNumber: z.string().min(1, "Regimental number is required"),
+  studentId: z.string().min(1, "Student ID is required"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  whatsapp: z.string().min(10, "WhatsApp number must be at least 10 digits"),
+});
+
+export async function registerCadet(prevState: any, formData: FormData) {
+  const validatedFields = registerCadetSchema.safeParse(
+    Object.fromEntries(formData.entries())
+  );
+
+  if (!validatedFields.success) {
+    return {
+      type: "error",
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Please check your input.",
+    };
+  }
+  
+  // This action is now only a mock to prevent build errors, as public
+  // registration has been disabled from the UI.
+  console.log("Mock registration submitted for:", validatedFields.data.email);
+
+  return {
+    type: "success",
+    message: "Registration submitted for approval. You will be notified via email.",
+  };
 }
