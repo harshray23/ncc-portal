@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import {
   SidebarProvider,
   Sidebar,
@@ -10,8 +11,11 @@ import {
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/shared/app-sidebar";
 import type { UserRole } from '@/lib/types';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Loader2 } from 'lucide-react';
 import { useAuth } from '@/components/providers/auth-provider';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
 
 export default function AuthenticatedLayout({
   children,
@@ -25,12 +29,34 @@ export default function AuthenticatedLayout({
   const { user, loading } = useAuth();
   
   if (loading) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>
+    return (
+        <div className="flex h-screen w-full items-center justify-center bg-background/80 backdrop-blur-sm">
+            <div className="flex items-center gap-4 text-xl font-semibold text-foreground">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                Loading Portal...
+            </div>
+      </div>
+    );
   }
   
   if (!user || user.role !== role) {
-    // In a real app, you'd probably redirect. For now, just showing a message.
-    return <div className="flex h-screen items-center justify-center">Access Denied. You do not have permission for this page.</div>
+    return (
+        <div className="flex h-screen w-full items-center justify-center bg-background/90 p-4">
+             <Card className="w-full max-w-md text-center shadow-2xl">
+                <CardHeader>
+                    <CardTitle className="text-2xl text-destructive">Access Denied</CardTitle>
+                    <CardDescription>
+                        You do not have permission to view this page or your session has expired.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Link href="/" passHref>
+                        <Button>Return to Home</Button>
+                    </Link>
+                </CardContent>
+            </Card>
+        </div>
+    );
   }
 
   const getTitle = (path: string) => {
