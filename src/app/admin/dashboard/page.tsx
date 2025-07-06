@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Flame, UserCheck, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
