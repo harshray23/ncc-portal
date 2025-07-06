@@ -66,15 +66,20 @@ function LoginFormComponent() {
       }
 
       const userCredential = await signInWithEmailAndPassword(auth, emailToLogin, password);
-      const token = await userCredential.user.getIdTokenResult();
+      // Force refresh of the token to get latest custom claims.
+      const token = await userCredential.user.getIdTokenResult(true);
       const userRole = token.claims.role;
 
       let path = "/";
-      if (userRole === 'admin' && role === 'admin') path = '/admin/dashboard';
-      else if (userRole === 'manager' && role === 'manager') path = '/manager/dashboard';
-      else if (userRole === 'cadet' && role === 'cadet') path = '/cadet/dashboard';
-      else {
-        throw new Error("You do not have permission to access this portal.");
+      if (userRole === 'admin') {
+        path = '/admin/dashboard';
+      } else if (userRole === 'manager') {
+        path = '/manager/dashboard';
+      } else if (userRole === 'cadet') {
+        path = '/cadet/dashboard';
+      } else {
+        // This should not happen for a valid user
+        throw new Error("Your account does not have a role assigned. Please contact an administrator.");
       }
       
       toast({ title: "Login Successful", description: "Redirecting..." });
@@ -89,6 +94,8 @@ function LoginFormComponent() {
         } else if (error.message.includes("permission")) {
             description = error.message;
         } else if (error.message.includes("Regimental Number")) {
+          description = error.message;
+        } else if (error.message.includes("role assigned")) {
           description = error.message;
         }
         
