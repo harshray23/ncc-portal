@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { UserProfile } from "@/lib/types";
 import * as XLSX from 'xlsx';
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileDown, PlusCircle, Search, Save, Trash2 } from "lucide-react";
+import { FileDown, PlusCircle, Search, Save, Trash2, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -15,18 +15,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { AddCadetDialog } from "@/components/admin/add-cadet-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-
-const mockCadets: UserProfile[] = [
-  { uid: 'cadet-1', name: 'Ankit Sharma', email: 'ankit.sharma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123456', regimentalNumberEditCount: 0, studentId: '20BCS1024', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 2 },
-  { uid: 'cadet-2', name: 'Priya Verma', email: 'priya.verma@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123457', regimentalNumberEditCount: 1, studentId: '20BCS1025', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 2 },
-  { uid: 'cadet-3', name: 'Rahul Singh', email: 'rahul.singh@example.com', role: 'cadet', regimentalNumber: 'PB20SDA123458', regimentalNumberEditCount: 0, studentId: '20BCS1026', rank: 'Lance Corporal', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 1 },
-  { uid: 'cadet-4', name: 'Sneha Gupta', email: 'sneha.gupta@example.com', role: 'cadet', regimentalNumber: 'PB20SWA987654', regimentalNumberEditCount: 2, studentId: '20BCS1027', rank: 'Cadet', phone: '1234567890', whatsapp: '1234567890', approved: true, createdAt: new Date(), year: 1 },
-];
-
+import { getCadets, updateCadet, deleteCadet } from "@/lib/actions/cadet.actions";
 
 export default function ManageCadetsPage() {
-  const [cadets, setCadets] = useState<UserProfile[]>(mockCadets);
+  const [cadets, setCadets] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -34,6 +27,22 @@ export default function ManageCadetsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletingCadet, setDeletingCadet] = useState<UserProfile | null>(null);
   const { toast } = useToast();
+
+  const fetchCadets = async () => {
+    setLoading(true);
+    try {
+      const cadetsData = await getCadets();
+      setCadets(cadetsData);
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch cadets.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCadets();
+  }, []);
   
   const handleEditClick = (cadet: UserProfile) => {
     setEditingCadet({ ...cadet });
@@ -45,50 +54,39 @@ export default function ManageCadetsPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deletingCadet) return;
-    setCadets(currentCadets => currentCadets.filter(c => c.uid !== deletingCadet.uid));
-    toast({ title: "Success", description: "Cadet has been deleted." });
+    const result = await deleteCadet(deletingCadet.uid);
+    if (result.success) {
+      toast({ title: "Success", description: "Cadet has been deleted." });
+      fetchCadets(); // Re-fetch cadets
+    } else {
+      toast({ variant: 'destructive', title: "Error", description: result.message });
+    }
     setIsDeleteDialogOpen(false);
     setDeletingCadet(null);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingCadet) return;
+    
+    // Server action will handle the logic for regimentalNumberEditCount
+    const result = await updateCadet(editingCadet);
 
-    const originalCadet = cadets.find(c => c.uid === editingCadet.uid);
-    let finalCadet = { ...editingCadet };
-
-    if (originalCadet && editingCadet.regimentalNumber !== originalCadet.regimentalNumber) {
-        if ((originalCadet.regimentalNumberEditCount || 0) < 2) {
-            finalCadet.regimentalNumberEditCount = (originalCadet.regimentalNumberEditCount || 0) + 1;
-        } else {
-            finalCadet.regimentalNumber = originalCadet.regimentalNumber; // Revert if somehow edited
-        }
+    if (result.success) {
+      toast({ title: "Success", description: "Cadet details updated." });
+      setIsEditDialogOpen(false);
+      setEditingCadet(null);
+      fetchCadets(); // Re-fetch to get updated data
+    } else {
+       toast({ variant: 'destructive', title: "Error", description: result.message });
     }
-
-    setCadets(currentCadets => 
-        currentCadets.map(cadet => 
-            cadet.uid === finalCadet.uid ? finalCadet : cadet
-        )
-    );
-    toast({ title: "Success", description: "Cadet details updated." });
-    setIsEditDialogOpen(false);
-    setEditingCadet(null);
   }
   
-  const handleAddCadet = (newCadetData: Omit<UserProfile, 'uid' | 'createdAt' | 'approved' | 'role' | 'regimentalNumberEditCount'>) => {
-    const newCadet: UserProfile = {
-      ...newCadetData,
-      uid: `cadet-${Date.now()}`, // mock UID
-      role: 'cadet',
-      approved: true, // New cadets added by admin are pre-approved
-      createdAt: new Date(),
-      regimentalNumberEditCount: 0,
-    };
-    setCadets(currentCadets => [newCadet, ...currentCadets]);
+  const handleCadetAdded = () => {
     setIsAddDialogOpen(false);
     toast({ title: "Success", description: "New cadet added successfully." });
+    fetchCadets(); // Re-fetch the list
   };
 
   const filteredCadets = cadets.filter(cadet => 
@@ -106,7 +104,7 @@ export default function ManageCadetsPage() {
       "Student ID": cadet.studentId,
       "Phone": cadet.phone,
       "WhatsApp": cadet.whatsapp,
-      "Registered At": cadet.createdAt.toLocaleDateString(),
+      "Registered At": new Date(cadet.createdAt).toLocaleDateString(),
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
@@ -153,7 +151,13 @@ export default function ManageCadetsPage() {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {filteredCadets.length === 0 ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center h-24">
+                      <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                    </TableCell>
+                  </TableRow>
+                ) : filteredCadets.length === 0 ? (
                     <TableRow>
                         <TableCell colSpan={5} className="text-center">No cadets found.</TableCell>
                     </TableRow>
@@ -251,7 +255,7 @@ export default function ManageCadetsPage() {
     <AddCadetDialog 
         isOpen={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
-        onCadetAdded={handleAddCadet}
+        onCadetAdded={handleCadetAdded}
     />
 
     {deletingCadet && (

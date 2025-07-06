@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface AddCadetDialogProps {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
-    onCadetAdded: (newCadet: Omit<UserProfile, 'uid' | 'createdAt' | 'approved' | 'role' | 'regimentalNumberEditCount'>) => void;
+    onCadetAdded: () => void;
 }
 
 function SubmitButton() {
@@ -41,8 +41,8 @@ export function AddCadetDialog({ isOpen, onOpenChange, onCadetAdded }: AddCadetD
     const [year, setYear] = useState("");
     
     useEffect(() => {
-        if (state.type === 'success' && state.data) {
-            onCadetAdded(state.data);
+        if (state.type === 'success') {
+            onCadetAdded();
             formRef.current?.reset();
             setYear("");
         }
@@ -52,6 +52,11 @@ export function AddCadetDialog({ isOpen, onOpenChange, onCadetAdded }: AddCadetD
         if (!open) {
             formRef.current?.reset();
             setYear("");
+            // Reset state if dialog is closed
+            if (state.type !== '') {
+                // A bit of a hack to reset the form action state
+                formAction(new FormData());
+            }
         }
         onOpenChange(open);
     }

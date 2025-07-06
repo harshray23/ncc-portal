@@ -14,7 +14,7 @@ export interface UserProfile {
   whatsapp: string;
   approved: boolean;
   profilePhotoUrl?: string;
-  createdAt: any; // Firestore Timestamp
+  createdAt: Date; 
   year?: number;
 }
 
@@ -26,7 +26,6 @@ export interface Camp {
   startDate: Date;
   endDate: Date;
   status: 'Upcoming' | 'Completed' | 'Planning';
-  registrationLink?: string; // Kept for AI flow, but registration will be handled internally
 }
 
 export type RegistrationStatus = 'Pending' | 'Accepted' | 'Rejected';
@@ -45,14 +44,20 @@ export interface CampRegistration {
 
 export interface AttendanceRecord {
     id: string;
+    cadetId: string;
+    cadetName: string;
+    regimentalNumber: string;
     eventName: string;
     date: Date;
-    status: 'Present' | 'Absent' | 'On-Leave';
+    status: 'Present' | 'Absent' | 'On-Leave' | 'Late';
+    remarks?: string;
 }
 
 export interface AppNotification {
     id: string;
+    userId: string;
     message: string;
     read: boolean;
     timestamp: Date;
+    href?: string;
 }

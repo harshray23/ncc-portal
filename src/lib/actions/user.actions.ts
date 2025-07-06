@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import admin from "@/lib/firebase-admin";
 
 const addCadetSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -27,60 +28,56 @@ export async function addCadet(prevState: any, formData: FormData) {
     };
   }
   
+  const { email, regimentalNumber, name } = validatedFields.data;
+
   try {
-    // In a real app, you would create the user in Firebase Auth and Firestore here.
-    // For mock mode, we just return the data to the client to update the UI.
-    const newCadetData = validatedFields.data;
-    
-    console.log("Mock adding cadet:", newCadetData.email);
+     // Check if a user with this email or regimental number already exists
+    const existingEmail = await admin.auth().getUserByEmail(email).catch(() => null);
+    if (existingEmail) {
+      return { type: 'error', message: 'A user with this email already exists.' };
+    }
+    const usersRef = admin.firestore().collection('users');
+    const regimentalSnapshot = await usersRef.where('regimentalNumber', '==', regimentalNumber).get();
+    if (!regimentalSnapshot.empty) {
+        return { type: 'error', message: 'A user with this regimental number already exists.' };
+    }
+
+
+    // The initial password is the regimental number
+    const userRecord = await admin.auth().createUser({
+        email,
+        password: regimentalNumber,
+        displayName: name,
+        emailVerified: true,
+    });
+
+    await admin.auth().setCustomUserClaims(userRecord.uid, { role: 'cadet' });
+
+    const newCadetData = {
+      ...validatedFields.data,
+      uid: userRecord.uid,
+      role: 'cadet',
+      approved: true,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      regimentalNumberEditCount: 0,
+      profilePhotoUrl: `https://placehold.co/128x128.png?text=${name.charAt(0)}`,
+    };
+
+    await usersRef.doc(userRecord.uid).set(newCadetData);
     
     revalidatePath('/admin/manage-cadets');
 
     return {
       type: "success",
       message: "Cadet added successfully.",
-      data: newCadetData
+      data: newCadetData // This won't have the server timestamp resolved, but it's for client-side state update.
     };
 
   } catch (error: any) {
     console.error("Add Cadet Error:", error);
     return {
       type: "error",
-      message: "An unexpected error occurred while adding the cadet.",
+      message: error.message || "An unexpected error occurred while adding the cadet.",
     };
   }
-}
-
-const registerCadetSchema = z.object({
-  name: z.string().min(3, "Name must be at least 3 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  rank: z.string().min(1, "Rank is required"),
-  regimentalNumber: z.string().min(1, "Regimental number is required"),
-  studentId: z.string().min(1, "Student ID is required"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  whatsapp: z.string().min(10, "WhatsApp number must be at least 10 digits"),
-});
-
-export async function registerCadet(prevState: any, formData: FormData) {
-  const validatedFields = registerCadetSchema.safeParse(
-    Object.fromEntries(formData.entries())
-  );
-
-  if (!validatedFields.success) {
-    return {
-      type: "error",
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: "Please check your input.",
-    };
-  }
-  
-  // This action is now only a mock to prevent build errors, as public
-  // registration has been disabled from the UI.
-  console.log("Mock registration submitted for:", validatedFields.data.email);
-
-  return {
-    type: "success",
-    message: "Registration submitted for approval. You will be notified via email.",
-  };
 }
