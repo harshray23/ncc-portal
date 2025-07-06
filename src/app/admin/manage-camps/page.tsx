@@ -12,8 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import type { Camp } from "@/lib/types";
+import { AddCampDialog } from "@/components/admin/add-camp-dialog";
 
-const initialCamps = [
+const initialCamps: Camp[] = [
   { id: 'CAMP-01', name: 'Annual Training Camp', location: 'Ropar, Punjab', startDate: new Date(2024, 7, 1), endDate: new Date(2024, 7, 10), status: 'Upcoming', description: "A comprehensive 10-day camp focusing on drill, weapon training, and map reading." },
   { id: 'CAMP-02', name: 'Thal Sainik Camp', location: 'Delhi Cantt', startDate: new Date(2024, 8, 15), endDate: new Date(2024, 8, 25), status: 'Upcoming', description: "National level camp for shooting, obstacle course, and other competitions." },
   { id: 'CAMP-03', name: 'Basic Leadership Camp', location: 'Dehradun, UK', startDate: new Date(2024, 5, 20), endDate: new Date(2024, 5, 30), status: 'Completed', description: "Develop leadership qualities and decision-making skills." },
@@ -22,12 +24,13 @@ const initialCamps = [
 ];
 
 export default function ManageCampsPage() {
-    const [camps, setCamps] = useState(initialCamps);
+    const [camps, setCamps] = useState<Camp[]>(initialCamps);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [deletingCamp, setDeletingCamp] = useState<any | null>(null);
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [deletingCamp, setDeletingCamp] = useState<Camp | null>(null);
     const { toast } = useToast();
 
-    const handleDeleteClick = (camp: any) => {
+    const handleDeleteClick = (camp: Camp) => {
         setDeletingCamp(camp);
         setIsDeleteDialogOpen(true);
     };
@@ -40,6 +43,10 @@ export default function ManageCampsPage() {
         setDeletingCamp(null);
     };
 
+    const handleCampAdded = (newCamp: Camp) => {
+        setCamps(currentCamps => [newCamp, ...currentCamps]);
+    };
+
   return (
     <>
     <Card>
@@ -49,7 +56,7 @@ export default function ManageCampsPage() {
                 <CardTitle>Camp Management</CardTitle>
                 <CardDescription>Oversee all upcoming, ongoing, and past camps.</CardDescription>
             </div>
-            <Button><PlusCircle className="mr-2"/> Create New Camp</Button>
+            <Button onClick={() => setIsAddDialogOpen(true)}><PlusCircle className="mr-2"/> Create New Camp</Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -96,6 +103,13 @@ export default function ManageCampsPage() {
         </div>
       </CardContent>
     </Card>
+
+    <AddCampDialog 
+        isOpen={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onCampAdded={handleCampAdded}
+    />
+
     {deletingCamp && (
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
             <AlertDialogContent>

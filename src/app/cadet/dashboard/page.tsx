@@ -7,7 +7,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, Flame, CheckSquare, User } from "lucide-react";
+import { ArrowRight, Flame, CheckSquare, User, Bell, CheckCircle } from "lucide-react";
+import { AppNotification } from "@/lib/types";
+import { formatDistanceToNow } from 'date-fns';
+import { Badge } from "@/components/ui/badge";
 
 const quickLinks = [
   {
@@ -29,6 +32,12 @@ const quickLinks = [
     icon: CheckSquare,
   },
 ];
+
+const mockNotifications: AppNotification[] = [
+    { id: 'notif-1', message: "Congratulations! You have been selected for the Annual Training Camp.", read: false, timestamp: new Date(Date.now() - 3600000) },
+    { id: 'notif-2', message: "Your profile details have been updated successfully.", read: true, timestamp: new Date(Date.now() - 86400000 * 2) },
+    { id: 'notif-3', message: "Reminder: Weekly parade tomorrow at 0800 hrs.", read: true, timestamp: new Date(Date.now() - 86400000 * 3) }
+]
 
 export default function CadetDashboard() {
   return (
@@ -65,22 +74,47 @@ export default function CadetDashboard() {
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-            <CardTitle>Next Upcoming Event</CardTitle>
-        </CardHeader>
-        <CardContent>
-            <div className="flex flex-col items-start gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h3 className="text-lg font-semibold">Annual Training Camp</h3>
-                    <p className="text-muted-foreground">Location: Ropar, Punjab | Starts: 01 Aug 2024</p>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+            <CardHeader>
+                <CardTitle>Next Upcoming Event</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="flex flex-col items-start gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h3 className="text-lg font-semibold">Thal Sainik Camp</h3>
+                        <p className="text-muted-foreground">Location: Delhi Cantt | Starts: 15 Sep 2024</p>
+                    </div>
+                    <Link href="/cadet/camps" passHref>
+                        <Button>View Details</Button>
+                    </Link>
                 </div>
-                <Link href="/cadet/camps" passHref>
-                    <Button>View Details</Button>
-                </Link>
-            </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    Notifications
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    {mockNotifications.map(notif => (
+                        <div key={notif.id} className="flex items-start gap-3">
+                            <div>
+                                <div className={`h-2 w-2 rounded-full mt-2 ${notif.read ? 'bg-transparent' : 'bg-primary animate-pulse'}`}></div>
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium">{notif.message}</p>
+                                <p className="text-xs text-muted-foreground">{formatDistanceToNow(notif.timestamp, { addSuffix: true })}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

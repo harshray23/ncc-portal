@@ -2,29 +2,41 @@
 
 import { useState } from 'react';
 import { format } from "date-fns";
-import { Flame, MapPin, Calendar } from "lucide-react";
+import { Flame, MapPin, Calendar, CheckCircle, Hourglass, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { VerifyLinkDialog } from "@/components/cadet/verify-link-dialog";
-import type { Camp } from "@/lib/types";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CampRegistrationForm } from "@/components/cadet/camp-registration-form";
+import type { Camp, CampRegistration, RegistrationStatus } from "@/lib/types";
 
 interface CampCardProps {
   camp: Camp;
+  registrationStatus?: RegistrationStatus;
+  onRegister: (newRegistration: Omit<CampRegistration, 'id' | 'registeredAt'>) => void;
 }
 
-export function CampCard({ camp }: CampCardProps) {
-    const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
+export function CampCard({ camp, registrationStatus, onRegister }: CampCardProps) {
+    const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
 
   const formattedStartDate = format(camp.startDate, "dd MMM yyyy");
   const formattedEndDate = format(camp.endDate, "dd MMM yyyy");
+
+  const renderFooter = () => {
+    if (registrationStatus === 'Accepted') {
+        return <Button disabled className="w-full bg-green-600 hover:bg-green-700"><CheckCircle className="mr-2" /> Registered</Button>
+    }
+    if (registrationStatus === 'Pending') {
+        return <Button disabled className="w-full"><Hourglass className="mr-2" /> Registration Pending</Button>
+    }
+    if (registrationStatus === 'Rejected') {
+        return <Button disabled variant="destructive" className="w-full"><XCircle className="mr-2" /> Registration Rejected</Button>
+    }
+    return (
+        <Button className="w-full" onClick={() => setIsRegistrationOpen(true)}>
+            Register Now
+        </Button>
+    )
+  }
 
   return (
     <>
@@ -35,7 +47,7 @@ export function CampCard({ camp }: CampCardProps) {
                 <Flame className="h-6 w-6" />
             </div>
             <div>
-                <CardTitle className="font-headline">{camp.title}</CardTitle>
+                <CardTitle className="font-headline">{camp.name}</CardTitle>
                 <CardDescription className="flex items-center gap-2 pt-1">
                     <MapPin className="h-4 w-4" /> {camp.location}
                 </CardDescription>
@@ -50,15 +62,14 @@ export function CampCard({ camp }: CampCardProps) {
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="w-full" onClick={() => setIsVerifyDialogOpen(true)}>
-            Register Now
-          </Button>
+          {renderFooter()}
         </CardFooter>
       </Card>
-      <VerifyLinkDialog 
-        isOpen={isVerifyDialogOpen}
-        setIsOpen={setIsVerifyDialogOpen}
+      <CampRegistrationForm 
+        isOpen={isRegistrationOpen}
+        setIsOpen={setIsRegistrationOpen}
         camp={camp}
+        onRegister={onRegister}
       />
     </>
   );

@@ -20,30 +20,39 @@ export interface UserProfile {
 
 export interface Camp {
   id: string;
-  title: string;
+  name: string;
   description: string;
   location: string;
   startDate: Date;
   endDate: Date;
-  registrationLink: string;
+  status: 'Upcoming' | 'Completed' | 'Planning';
+  registrationLink?: string; // Kept for AI flow, but registration will be handled internally
 }
+
+export type RegistrationStatus = 'Pending' | 'Accepted' | 'Rejected';
 
 export interface CampRegistration {
     id: string;
     campId: string;
     cadetId: string;
-    regimentalNumber: string;
-    studentId: string;
-    rank: string;
-    name: string;
-    phone: string;
-    whatsapp: string;
-    registeredAt: any; // Firestore Timestamp
+    cadetName: string;
+    cadetYear: number;
+    cadetRegimentalNumber: string;
+    status: RegistrationStatus;
+    registeredAt: Date;
 }
+
 
 export interface AttendanceRecord {
     id: string;
     eventName: string;
     date: Date;
     status: 'Present' | 'Absent' | 'On-Leave';
+}
+
+export interface AppNotification {
+    id: string;
+    message: string;
+    read: boolean;
+    timestamp: Date;
 }
