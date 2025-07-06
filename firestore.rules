@@ -1,63 +1,70 @@
-
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function isAuth() {
-      return request.auth != null;
-    }
-
-    function isUser(userId) {
-      return isAuth() && request.auth.uid == userId;
-    }
-
+    
+    // Helper function to check for admin role from custom claims
     function isAdmin() {
-      return isAuth() && request.auth.token.role == "admin";
-    }
-
-    function isManager() {
-      return isAuth() && request.auth.token.role == "manager";
-    }
-
-    function isCadet() {
-      return isAuth() && request.auth.token.role == "cadet";
-    }
-
-    // USERS
-    match /users/{userId} {
-      // Admins and managers can read any user profile
-      // Users can read their own profile
-      allow read: if isAdmin() || isManager() || isUser(userId);
-      // Admins can update any profile (e.g., to approve)
-      // Users can update their own profile
-      allow update: if isAdmin() || isUser(userId);
-      // Creation/deletion is handled server-side
-      allow create, delete: if false;
-    }
-
-    // CAMPS
-    match /camps/{campId} {
-      allow create, update, delete: if isAdmin();
-      allow read: if isAuth(); // Any authenticated user can read camp info
-    }
-
-    // CAMP REGISTRATIONS
-    match /camp_registrations/{regId} {
-      allow create: if isCadet();
-      // Admins/Managers can read all registrations. Cadets can read their own.
-      allow read: if isAdmin() || isManager() || (isCadet() && request.auth.uid == resource.data.cadetId);
-      allow delete: if isAdmin();
-    }
-
-    // ATTENDANCE
-    match /attendance/{dateId} {
-        allow read: if isAdmin() || isManager();
-        allow write: if isAdmin();
+      return request.auth.token.role == 'admin';
     }
     
-    match /attendance/{dateId}/records/{userId} {
-      allow read: if isAdmin() || isManager() || isUser(userId);
-      allow create, update: if isAdmin();
+    // Helper function to check for manager role from custom claims
+    function isManager() {
+      return request.auth.token.role == 'manager';
+    }
+
+    // Helper function to check for cadet role from custom claims
+    function isCadet() {
+      return request.auth.token.role == 'cadet';
+    }
+
+    // Cadets Collection
+    match /cadets/{cadetId} {
+      allow create: if isAdmin();
+      allow read: if request.auth.uid == cadetId || isAdmin() || isManager();
+      // Allow cadet to update their own profile, but not critical fields like role or approved status.
+      // Admins can update anything.
+      allow update: if (request.auth.uid == cadetId && request.resource.data.role == resource.data.role && request.resource.data.approved == resource.data.approved) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Admins Collection
+    match /admins/{adminId} {
+        allow read, update: if request.auth.uid == adminId && isAdmin();
+        // Only other admins can create/delete admins.
+        allow create, delete: if isAdmin();
+    }
+
+    // Managers Collection
+    match /managers/{managerId} {
+        allow read, update: if request.auth.uid == managerId && isManager();
+        // Only admins can create/delete managers.
+        allow create, delete: if isAdmin();
+    }
+
+    // Camps Collection
+    match /camps/{campId} {
+      allow read: if request.auth != null; // All authenticated users can read
+      allow write: if isAdmin(); // Only admins can create, update, delete
+    }
+    
+    // Registrations Collection
+    match /registrations/{registrationId} {
+        allow read: if request.auth.uid == resource.data.cadetId || isAdmin() || isManager();
+        allow create: if isCadet() && request.auth.uid == request.resource.data.cadetId;
+        allow update, delete: if isAdmin();
+    }
+
+    // Attendance Collection
+    match /attendance/{attendanceId} {
+        allow read: if request.auth != null; // All authenticated users can read (server actions will filter)
+        allow write: if isAdmin(); // Only admins can write
+    }
+    
+    // Notifications Collection
+    match /notifications/{notificationId} {
+        allow read: if request.auth.uid == resource.data.userId;
+        allow write: if false; // Only the server (via Admin SDK) can create notifications.
     }
   }
 }
