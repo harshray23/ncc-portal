@@ -58,7 +58,7 @@ export default async function AdminDashboard() {
                               <TableRow key={index}>
                                   <TableCell>{activity.description}</TableCell>
                                   <TableCell className="text-right text-muted-foreground">
-                                    {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+                                    {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                                   </TableCell>
                               </TableRow>
                           ))}

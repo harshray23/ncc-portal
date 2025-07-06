@@ -96,7 +96,7 @@ export function CampDetailsClientPage({ initialCampDetails }: CampDetailsClientP
                         <Calendar className="h-6 w-6 text-primary" />
                         <div>
                             <p className="font-semibold">Camp Dates</p>
-                            <p className="text-muted-foreground">{`${format(camp.startDate, "dd MMM yyyy")} to ${format(camp.endDate, "dd MMM yyyy")}`}</p>
+                            <p className="text-muted-foreground">{`${format(new Date(camp.startDate), "dd MMM yyyy")} to ${format(new Date(camp.endDate), "dd MMM yyyy")}`}</p>
                         </div>
                     </div>
                      <div className="flex items-center gap-3 rounded-md border p-4">

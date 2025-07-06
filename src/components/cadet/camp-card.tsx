@@ -28,8 +28,8 @@ interface CampCardProps {
 
 export function CampCard({ camp, registrationStatus, onRegister, currentUser }: CampCardProps) {
   const [isRegistering, setIsRegistering] = useState(false);
-  const formattedStartDate = format(camp.startDate, "dd MMM yyyy");
-  const formattedEndDate = format(camp.endDate, "dd MMM yyyy");
+  const formattedStartDate = format(new Date(camp.startDate), "dd MMM yyyy");
+  const formattedEndDate = format(new Date(camp.endDate), "dd MMM yyyy");
 
   const handleRegistration = async () => {
     setIsRegistering(true);

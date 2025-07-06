@@ -78,7 +78,7 @@ export function CampsClientPage({ initialCamps }: { initialCamps: Camp[] }) {
                     <TableCell className="font-medium">{camp.id}</TableCell>
                     <TableCell>{camp.name}</TableCell>
                     <TableCell>{camp.location}</TableCell>
-                    <TableCell>{`${format(camp.startDate, "dd MMM yyyy")} - ${format(camp.endDate, "dd MMM yyyy")}`}</TableCell>
+                    <TableCell>{`${format(new Date(camp.startDate), "dd MMM yyyy")} - ${format(new Date(camp.endDate), "dd MMM yyyy")}`}</TableCell>
                     <TableCell>
                         <Badge variant={camp.status === 'Upcoming' ? 'default' : (camp.status === 'Completed' ? 'secondary' : 'outline')}>
                             {camp.status}

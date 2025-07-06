@@ -20,8 +20,8 @@ function docToCamp(doc: FirebaseFirestore.DocumentSnapshot): Camp {
         name: data.name,
         description: data.description,
         location: data.location,
-        startDate: data.startDate.toDate(),
-        endDate: data.endDate.toDate(),
+        startDate: data.startDate.toDate().toISOString(),
+        endDate: data.endDate.toDate().toISOString(),
         status: data.status,
     };
 }
@@ -74,7 +74,7 @@ export async function getCampDetails(campId: string) {
             return {
                 id: doc.id,
                 ...data,
-                registeredAt: data.registeredAt.toDate(),
+                registeredAt: data.registeredAt.toDate().toISOString(),
             } as CampRegistration;
         });
 
@@ -158,7 +158,7 @@ export async function getCampsForCadet(cadetId: string) {
             return {
                 id: doc.id,
                 ...data,
-                registeredAt: data.registeredAt.toDate(),
+                registeredAt: data.registeredAt.toDate().toISOString(),
             } as CampRegistration;
         });
         

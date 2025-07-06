@@ -33,7 +33,7 @@ export function CampsClientPage({ initialCamps, initialRegistrations, currentUse
             cadetRegimentalNumber: currentUser.regimentalNumber,
             cadetYear: currentUser.year,
             status: 'Pending',
-            registeredAt: new Date(),
+            registeredAt: new Date().toISOString(),
         };
         setRegistrations(prev => [...prev, newRegistration]);
     } else {

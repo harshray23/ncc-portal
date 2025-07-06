@@ -14,7 +14,7 @@ export interface UserProfile {
   whatsapp: string;
   approved: boolean;
   profilePhotoUrl?: string;
-  createdAt: Date; 
+  createdAt: string; 
   year: number;
 }
 
@@ -23,8 +23,8 @@ export interface Camp {
   name: string;
   description: string;
   location: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
   status: 'Upcoming' | 'Completed' | 'Planning';
 }
 
@@ -38,13 +38,13 @@ export interface CampRegistration {
     cadetYear: number;
     cadetRegimentalNumber: string;
     status: RegistrationStatus;
-    registeredAt: Date;
+    registeredAt: string;
 }
 
 
 export interface AttendanceRecord {
     id: string; // YYYY-MM-DD
-    date: Date;
+    date: string;
     records: Record<string, {
       cadetId: string;
       status: 'Present' | 'Absent' | 'On-Leave' | 'Late';
@@ -65,6 +65,6 @@ export interface AppNotification {
     userId: string;
     message: string;
     read: boolean;
-    timestamp: Date;
+    timestamp: string;
     href?: string;
 }

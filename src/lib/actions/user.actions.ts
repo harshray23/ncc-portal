@@ -82,7 +82,7 @@ function convertDocToProfile(doc: FirebaseFirestore.DocumentSnapshot): UserProfi
     return {
         ...data,
         uid: doc.id,
-        createdAt: data.createdAt.toDate(),
+        createdAt: data.createdAt.toDate().toISOString(),
     } as UserProfile;
 }
 
@@ -105,7 +105,7 @@ export async function updateUserProfile(profileData: UserProfile): Promise<{ suc
     
     const docRef = admin.firestore().collection(collectionName).doc(uid);
     
-    await docRef.update({ ...dataToUpdate });
+    await docRef.update({ ...dataToUpdate, createdAt: new Date(dataToUpdate.createdAt) });
 
     revalidatePath(`/${role}/profile`);
     revalidatePath(`/${role}/dashboard`);
@@ -129,7 +129,11 @@ export async function updateCadet(cadetData: UserProfile): Promise<{ success: bo
     }
     const originalData = doc.data() as UserProfile;
 
-    let finalData = { ...dataToUpdate };
+    let finalData: any = { ...dataToUpdate };
+    
+    // Ensure createdAt is a Date object for Firestore
+    finalData.createdAt = new Date(finalData.createdAt);
+
 
     if (finalData.regimentalNumber !== originalData.regimentalNumber) {
         const editCount = originalData.regimentalNumberEditCount ?? 0;

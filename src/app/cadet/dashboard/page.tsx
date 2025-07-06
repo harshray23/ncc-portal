@@ -83,7 +83,7 @@ export default async function CadetDashboard() {
                   <div className="flex flex-col items-start gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                           <h3 className="text-lg font-semibold">{nextCamp.name}</h3>
-                          <p className="text-muted-foreground">Location: {nextCamp.location} | Starts: {nextCamp.startDate.toLocaleDateString()}</p>
+                          <p className="text-muted-foreground">Location: {nextCamp.location} | Starts: {new Date(nextCamp.startDate).toLocaleDateString()}</p>
                       </div>
                       <Link href="/cadet/camps" passHref>
                           <Button>View Details</Button>
@@ -99,7 +99,7 @@ export default async function CadetDashboard() {
                 <CardTitle className="flex items-center gap-2">
                     <Bell className="h-5 w-5" />
                     Notifications
-                </CardTitle>
+                </Title>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
@@ -110,7 +110,7 @@ export default async function CadetDashboard() {
                             </div>
                             <div>
                                 <p className="text-sm font-medium">{notif.message}</p>
-                                <p className="text-xs text-muted-foreground">{formatDistanceToNow(notif.timestamp, { addSuffix: true })}</p>
+                                <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(notif.timestamp), { addSuffix: true })}</p>
                             </div>
                         </div>
                     )) : (

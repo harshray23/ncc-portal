@@ -11,7 +11,14 @@ export async function getAttendanceData(date: Date): Promise<AttendanceData> {
 
     // Fetch all active cadets
     const cadetsSnapshot = await firestore.collection('cadets').where('approved', '==', true).get();
-    const cadets = cadetsSnapshot.docs.map(doc => doc.data() as UserProfile);
+    const cadets = cadetsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...data,
+            uid: doc.id,
+            createdAt: data.createdAt.toDate().toISOString(),
+        } as UserProfile;
+    });
 
     // Fetch existing attendance for that day
     const attendanceDoc = await firestore.collection('attendance').doc(dateString).get();
@@ -34,7 +41,7 @@ export async function saveAttendance(date: Date, records: AttendanceData['record
         const admin = getFirebaseAdmin();
         const dateString = date.toISOString().split('T')[0];
         
-        const dataToSave: Omit<AttendanceRecord, 'id'> = {
+        const dataToSave: Omit<AttendanceRecord, 'id'|'date'> & { date: Date } = {
             date: date,
             records: {}
         };
@@ -62,13 +69,13 @@ export async function getCadetAttendance(cadetId: string): Promise<Omit<Attendan
 
         const results: any[] = [];
         snapshot.forEach(doc => {
-            const data = doc.data() as AttendanceRecord;
+            const data = doc.data() as any; // Firestore data
             const cadetRecord = data.records[cadetId];
             if (cadetRecord) {
                 results.push({
                     id: doc.id,
                     eventName: `Attendance for ${doc.id}`, // Or some other event name logic
-                    date: data.date.toDate(),
+                    date: data.date.toDate().toISOString(),
                     status: cadetRecord.status,
                     remarks: cadetRecord.remarks,
                 });

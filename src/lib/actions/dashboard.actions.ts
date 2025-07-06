@@ -1,6 +1,7 @@
 'use server';
 
 import { getFirebaseAdmin } from '../firebase-admin';
+import type { AppNotification, Camp } from '../types';
 
 export async function getDashboardStats() {
     try {
@@ -19,8 +20,8 @@ export async function getDashboardStats() {
 
         // For now, recent activities will be hardcoded as we don't have an audit log collection yet
         const recentActivities = [
-            { description: "Database re-seeded with initial data.", timestamp: new Date() },
-            { description: "System migrated to live Firestore database.", timestamp: new Date(Date.now() - 3600000) },
+            { description: "Database re-seeded with initial data.", timestamp: new Date().toISOString() },
+            { description: "System migrated to live Firestore database.", timestamp: new Date(Date.now() - 3600000).toISOString() },
         ];
 
         return { stats, recentActivities };
@@ -37,7 +38,7 @@ export async function getDashboardStats() {
     }
 }
 
-export async function getCadetDashboardData(cadetId: string) {
+export async function getCadetDashboardData(cadetId: string): Promise<{ notifications: AppNotification[], nextCamp: Camp | null }> {
     try {
         const admin = getFirebaseAdmin();
         const firestore = admin.firestore();
@@ -48,17 +49,22 @@ export async function getCadetDashboardData(cadetId: string) {
             return {
                 id: doc.id,
                 ...data,
-                timestamp: data.timestamp.toDate(),
-            }
+                timestamp: data.timestamp.toDate().toISOString(),
+            } as AppNotification
         });
 
         const nextCampSnap = await firestore.collection('camps').where('status', '==', 'Upcoming').orderBy('startDate', 'asc').limit(1).get();
-        const nextCamp = nextCampSnap.empty ? null : {
+        if (nextCampSnap.empty) {
+            return { notifications, nextCamp: null };
+        }
+
+        const campData = nextCampSnap.docs[0].data();
+        const nextCamp = {
             id: nextCampSnap.docs[0].id,
-            ...nextCampSnap.docs[0].data(),
-            startDate: nextCampSnap.docs[0].data().startDate.toDate(),
-            endDate: nextCampSnap.docs[0].data().endDate.toDate(),
-        };
+            ...campData,
+            startDate: campData.startDate.toDate().toISOString(),
+            endDate: campData.endDate.toDate().toISOString(),
+        } as Camp;
 
         return { notifications, nextCamp };
 

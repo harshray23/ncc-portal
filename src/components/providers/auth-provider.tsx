@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         approved: data.approved,
         unit: data.unit,
         year: data.year,
-        createdAt: data.createdAt.toDate(),
+        createdAt: data.createdAt.toDate().toISOString(),
         regimentalNumberEditCount: data.regimentalNumberEditCount || 0,
         profilePhotoUrl: data.profilePhotoUrl
       };

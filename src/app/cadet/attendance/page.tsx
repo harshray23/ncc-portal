@@ -45,7 +45,7 @@ export default async function AttendancePage() {
               {attendanceRecords.map((record) => (
                 <TableRow key={record.id}>
                   <TableCell className="font-medium">{record.eventName}</TableCell>
-                  <TableCell>{format(record.date, "dd MMMM yyyy")}</TableCell>
+                  <TableCell>{format(new Date(record.date), "dd MMMM yyyy")}</TableCell>
                   <TableCell className="text-right">
                     <Badge
                       variant={

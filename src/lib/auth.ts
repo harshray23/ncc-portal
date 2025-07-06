@@ -37,7 +37,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
             approved: data.approved,
             unit: data.unit,
             year: data.year,
-            createdAt: data.createdAt.toDate(),
+            createdAt: data.createdAt.toDate().toISOString(),
             regimentalNumberEditCount: data.regimentalNumberEditCount || 0,
             profilePhotoUrl: data.profilePhotoUrl
         };
