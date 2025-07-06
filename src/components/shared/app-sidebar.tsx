@@ -43,6 +43,7 @@ const cadetNav = [
 const managerNav = [
   { href: "/manager/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/manager/activity", icon: BarChart, label: "Activity Monitor" },
+  { href: "/manager/manage-staff", icon: Users, label: "Manage Staff" },
 ];
 
 const adminNav = [
