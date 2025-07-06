@@ -1,5 +1,5 @@
 
-import { Shield, User, Briefcase } from "lucide-react";
+import { Shield, User, Briefcase, Database } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -25,6 +25,9 @@ export default function PortalSelectionPage() {
                 <div className="relative w-full max-w-4xl bg-background/90 backdrop-blur-sm rounded-lg p-8 shadow-2xl border border-border">
                     <Link href="/login?role=manager" className="absolute top-8 right-8 text-muted-foreground hover:text-primary" title="Manager Portal">
                         <Briefcase className="h-6 w-6" />
+                    </Link>
+                     <Link href="/setup" className="absolute top-8 right-20 text-muted-foreground hover:text-primary" title="Seed Database">
+                        <Database className="h-6 w-6" />
                     </Link>
                     <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
                         <Image src="/ncc.png" alt="NCC Logo" width={150} height={150} className="rounded-md" />
