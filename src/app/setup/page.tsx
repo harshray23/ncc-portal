@@ -84,6 +84,27 @@ const usersToSeed = [
     },
 ];
 
+const campsToSeed = [
+    {
+        id: 'camp-atc-01',
+        name: 'Annual Training Camp',
+        description: 'The flagship annual training camp for all cadets. Mandatory for second years.',
+        location: 'AEC College Ground',
+        startDate: new Date(new Date().getFullYear(), 8, 15), // Sep 15
+        endDate: new Date(new Date().getFullYear(), 8, 24), // Sep 24
+        status: 'Upcoming',
+    },
+    {
+        id: 'camp-tsc-01',
+        name: 'Thal Sainik Camp (TSC)',
+        description: 'A national level camp that gives an exposure to the cadets in military training and firing.',
+        location: 'Delhi Cantt',
+        startDate: new Date(new Date().getFullYear(), 10, 5), // Nov 5
+        endDate: new Date(new Date().getFullYear(), 10, 16), // Nov 16
+        status: 'Upcoming',
+    },
+];
+
 async function seedDatabaseAction() {
   'use server';
   try {
@@ -128,10 +149,19 @@ async function seedDatabaseAction() {
         batch.set(docRef, profileData);
     }
     
+    // Seed camps
+    const campsRef = firestore.collection('camps');
+    for (const camp of campsToSeed) {
+        batch.set(campsRef.doc(camp.id), {
+            ...camp,
+            createdAt: new Date(),
+        });
+    }
+
     await batch.commit();
     revalidatePath('/');
     console.log('Database seeded successfully!')
-    return { success: true, message: 'Database seeded successfully with initial users!' };
+    return { success: true, message: 'Database seeded successfully with initial users and camps!' };
   } catch (error: any) {
     console.error('Database seeding failed:', error);
     return { success: false, message: error.message || 'An unknown error occurred during seeding.' };
