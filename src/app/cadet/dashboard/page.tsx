@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -7,10 +10,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, Flame, CheckSquare, User, Bell } from "lucide-react";
+import { ArrowRight, Flame, CheckSquare, User, Bell, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
-import { getCurrentUser } from "@/lib/auth";
+import { useAuth } from "@/components/providers/auth-provider";
 import { getCadetDashboardData } from "@/lib/actions/dashboard.actions";
+import type { AppNotification, Camp } from "@/lib/types";
 
 const quickLinks = [
   {
@@ -33,11 +37,41 @@ const quickLinks = [
   },
 ];
 
-export default async function CadetDashboard() {
-  const user = await getCurrentUser();
-  if (!user) return <p>Loading user data...</p>;
+export default function CadetDashboard() {
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [nextCamp, setNextCamp] = useState<Camp | null>(null);
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (user) {
+        setLoadingData(true);
+        const data = await getCadetDashboardData(user.uid);
+        setNotifications(data.notifications);
+        setNextCamp(data.nextCamp);
+        setLoadingData(false);
+      }
+    }
+    fetchData();
+  }, [user]);
+
+  // The main layout already handles the top-level loading state for the user object.
+  // We just need to check for the user object before rendering.
+  if (!user) {
+    return null; // The AuthenticatedLayout will show a loader or an access denied message.
+  }
   
-  const { notifications, nextCamp } = await getCadetDashboardData(user.uid);
+  if (loadingData) {
+     return (
+        <div className="flex h-full w-full items-center justify-center">
+            <div className="flex items-center gap-4 text-xl font-semibold text-foreground">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                Loading Dashboard Data...
+            </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
