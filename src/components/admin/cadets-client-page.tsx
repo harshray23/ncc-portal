@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -67,8 +68,8 @@ export function CadetsClientPage({ initialCadets }: { initialCadets: UserProfile
   }
 
   const filteredCadets = cadets.filter(cadet => 
-    cadet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cadet.regimentalNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    (cadet.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (cadet.regimentalNumber || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDownload = () => {
