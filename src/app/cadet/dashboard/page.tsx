@@ -99,7 +99,7 @@ export default async function CadetDashboard() {
                 <CardTitle className="flex items-center gap-2">
                     <Bell className="h-5 w-5" />
                     Notifications
-                </Title>
+                </CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
