@@ -13,10 +13,6 @@ const mockActivities = [
   { id: 'act-2', timestamp: new Date(Date.now() - 3600000), user: 'Col. Elvish Ray', role: 'admin', type: 'Approval', details: 'Approved cadet: Priya Verma.' },
   { id: 'act-3', timestamp: new Date(Date.now() - 7200000), user: 'Cdt. Priya Verma', role: 'cadet', type: 'Registration', details: 'Registered for Annual Training Camp.' },
   { id: 'act-4', timestamp: new Date(Date.now() - 86400000), user: 'Maj. Vikram Batra', role: 'manager', type: 'Login', details: 'Successful login to manager portal.' },
-  { id: 'act-5', timestamp: new Date(Date.now() - 90000000), user: 'Cdt. Rahul Singh', role: 'cadet', type: 'Profile Update', details: 'Updated phone number.' },
-  { id: 'act-6', timestamp: new Date(Date.now() - 172800000), user: 'Col. Elvish Ray', role: 'admin', type: 'Data Import', details: 'Imported 50 new cadet records from XLSX.' },
-  { id: 'act-7', timestamp: new Date(Date.now() - 259200000), user: 'Maj. Vikram Batra', role: 'manager', type: 'Report Download', details: 'Downloaded monthly attendance report.' },
-  { id: 'act-8', timestamp: new Date(Date.now() - 604800000), user: 'Cdt. Sneha Gupta', role: 'cadet', type: 'New User', details: 'New cadet registration submitted for approval.' },
 ];
 
 const activityIcons = {
