@@ -1,16 +1,48 @@
-import { CampCard } from "@/components/cadet/camp-card";
-import { getCampsForCadet } from "@/lib/actions/camp.actions";
-import { getCurrentUser } from "@/lib/auth";
-import { CampsClientPage } from "@/components/cadet/camps-client-page";
+"use client";
 
-export default async function CampsPage() {
-  const user = await getCurrentUser();
+import { useEffect, useState } from "react";
+import { useAuth } from "@/components/providers/auth-provider";
+import { getCampsForCadet } from "@/lib/actions/camp.actions";
+import { CampsClientPage } from "@/components/cadet/camps-client-page";
+import type { Camp, CampRegistration, UserProfile } from "@/lib/types";
+import { Loader2 } from "lucide-react";
+
+export default function CampsPage() {
+  const { user } = useAuth();
+  const [campsData, setCampsData] = useState<{
+    camps: Camp[];
+    registrations: CampRegistration[];
+  } | null>(null);
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (user) {
+        setLoadingData(true);
+        const data = await getCampsForCadet(user.uid);
+        setCampsData(data);
+        setLoadingData(false);
+      }
+    }
+    fetchData();
+  }, [user]);
+
   if (!user) {
-    // This should be handled by middleware in a real app
-    return <p>Please log in.</p>;
+    // This part is handled by the AuthenticatedLayout, which will show a loader
+    // or an access denied message. Returning null prevents a flash of content.
+    return null;
   }
 
-  const { camps, registrations } = await getCampsForCadet(user.uid);
+  if (loadingData) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex items-center gap-4 text-xl font-semibold text-foreground">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          Loading Camps...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -20,11 +52,17 @@ export default async function CampsPage() {
           Explore and register for the latest camps and training programs.
         </p>
       </div>
-      <CampsClientPage 
-        initialCamps={camps} 
-        initialRegistrations={registrations} 
-        currentUser={user}
-      />
+      {campsData && campsData.camps.length > 0 ? (
+        <CampsClientPage
+          initialCamps={campsData.camps}
+          initialRegistrations={campsData.registrations}
+          currentUser={user as UserProfile}
+        />
+      ) : (
+        <div className="flex justify-center items-center text-center text-muted-foreground p-8 bg-card rounded-lg">
+          <p>There are no upcoming camps scheduled at this time.</p>
+        </div>
+      )}
     </div>
   );
 }
