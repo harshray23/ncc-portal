@@ -29,6 +29,15 @@ export default function AuthenticatedLayout({
   const [open, setOpen] = React.useState(true);
   const { user, loading } = useAuth();
   
+  // This useEffect hook must be at the top level of the component.
+  // The logic to redirect is now placed inside the hook.
+  React.useEffect(() => {
+    // We only redirect when loading is complete to avoid premature redirects.
+    if (!loading && (!user || user.role !== role)) {
+      router.push('/');
+    }
+  }, [loading, user, role, router]);
+
   if (loading) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background/80 backdrop-blur-sm">
@@ -40,15 +49,9 @@ export default function AuthenticatedLayout({
     );
   }
   
+  // If the user is not authenticated or doesn't have the right role,
+  // we render a "Redirecting..." state while the useEffect above handles the navigation.
   if (!user || user.role !== role) {
-    // Instead of showing "Access Denied", we redirect to the homepage.
-    // This handles the logout case more gracefully.
-    // The useEffect ensures this runs on the client after mount.
-    React.useEffect(() => {
-      router.push('/');
-    }, [router]);
-
-    // Show a loader while redirecting.
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background/90 p-4">
              <Card className="w-full max-w-md text-center shadow-2xl">
