@@ -65,21 +65,21 @@ const usersToSeed = [
     },
     {
         uid: 'cadet-user-01',
-        email: 'cadet1@example.com',
+        email: 'cadet@example.com',
         password: 'password123',
         role: 'cadet',
         profile: {
-            name: 'Priya Verma',
-            regimentalNumber: 'PB20SDA123457',
-            studentId: '20BCS1025',
+            name: 'Cadet User',
+            regimentalNumber: 'CADET001',
+            studentId: 'STUDENT001',
             rank: 'Cadet',
             phone: '1234567890',
             whatsapp: '1234567890',
             approved: true,
-            year: 2,
+            year: 1,
             unit: '10 Bengal Battalion',
             regimentalNumberEditCount: 0,
-            profilePhotoUrl: 'https://placehold.co/128x128.png?text=P',
+            profilePhotoUrl: 'https://placehold.co/128x128.png?text=C',
         },
     },
 ];
@@ -125,7 +125,7 @@ async function seedDatabaseAction() {
             });
         } catch (error: any) {
              if (error.code === 'auth/uid-already-exists' || error.code === 'auth/email-already-exists') {
-                console.log(`User ${userData.email} already exists in Auth. Skipping creation.`);
+                console.log(`User ${userData.email} already exists in Auth. Skipping creation, but will update claims and profile.`);
             } else {
                 throw error; // Re-throw other errors
             }
@@ -146,7 +146,7 @@ async function seedDatabaseAction() {
             createdAt: new Date(),
         };
 
-        batch.set(docRef, profileData);
+        batch.set(docRef, profileData, { merge: true }); // Use merge to avoid overwriting existing data if only updating
     }
     
     // Seed camps
@@ -155,7 +155,7 @@ async function seedDatabaseAction() {
         batch.set(campsRef.doc(camp.id), {
             ...camp,
             createdAt: new Date(),
-        });
+        }, { merge: true });
     }
 
     await batch.commit();
