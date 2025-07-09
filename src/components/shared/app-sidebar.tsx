@@ -69,8 +69,8 @@ export function AppSidebar({ user }: AppSidebarProps) {
 
   const handleLogout = async () => {
     const { auth } = getFirebase();
-    await auth.signOut();
     router.push("/");
+    await auth.signOut();
   };
 
   return (
