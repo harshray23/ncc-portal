@@ -12,11 +12,27 @@ const addCadetSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   regimentalNumber: z.string().min(1, "Regimental number is required"),
   studentId: z.string().min(1, "Student ID is required"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  whatsapp: z.string().min(10, "WhatsApp number must be at least 10 digits"),
+  phone: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits."),
+  whatsapp: z.string().regex(/^\d{10}$/, "WhatsApp number must be 10 digits."),
   rank: z.string().min(1, "Rank is required"),
   year: z.string().regex(/^[1-3]$/, "Year must be 1, 2, or 3").transform(Number),
   unit: z.string().min(1, "Unit is required"),
+});
+
+const updateProfileSchema = z.object({
+  name: z.string().min(1, "Name cannot be empty."),
+  rank: z.string().min(1, "Rank cannot be empty."),
+  unit: z.string().min(1, "Unit cannot be empty."),
+  phone: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits."),
+  whatsapp: z.string().regex(/^\d{10}$/, "WhatsApp number must be 10 digits."),
+});
+
+const adminUpdateCadetSchema = z.object({
+  name: z.string().min(1, "Name cannot be empty."),
+  rank: z.string().min(1, "Rank cannot be empty."),
+  year: z.number().min(1).max(3),
+  phone: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits."),
+  regimentalNumber: z.string().min(1, "Regimental number cannot be empty."),
 });
 
 export async function addCadet(prevState: any, formData: FormData) {
@@ -112,7 +128,23 @@ export async function getCadets(): Promise<UserProfile[]> {
   }
 }
 
-export async function updateUserProfile(profileData: UserProfile): Promise<{ success: boolean; message?: string }> {
+export async function updateUserProfile(profileData: UserProfile): Promise<{ success: boolean; message?: string, errors?: Record<string, string[] | undefined> }> {
+  const validatedFields = updateProfileSchema.safeParse({
+    name: profileData.name,
+    rank: profileData.rank,
+    unit: profileData.unit,
+    phone: profileData.phone,
+    whatsapp: profileData.whatsapp,
+  });
+
+  if (!validatedFields.success) {
+      return {
+          success: false,
+          message: "Please correct the errors below.",
+          errors: validatedFields.error.flatten().fieldErrors,
+      };
+  }
+  
   try {
     const admin = getFirebaseAdmin();
     const { uid, role, ...dataToUpdate } = profileData;
@@ -139,7 +171,23 @@ export async function updateUserProfile(profileData: UserProfile): Promise<{ suc
   }
 }
 
-export async function updateCadet(cadetData: UserProfile): Promise<{ success: boolean; message?: string }> {
+export async function updateCadet(cadetData: UserProfile): Promise<{ success: boolean; message?: string, errors?: Record<string, string[] | undefined> }> {
+   const validatedFields = adminUpdateCadetSchema.safeParse({
+    name: cadetData.name,
+    rank: cadetData.rank,
+    year: cadetData.year,
+    phone: cadetData.phone,
+    regimentalNumber: cadetData.regimentalNumber,
+  });
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      message: 'Please correct the errors below.',
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
   try {
     const admin = getFirebaseAdmin();
     const { uid, ...dataToUpdate } = cadetData;

@@ -25,12 +25,14 @@ export function CadetsClientPage({ initialCadets }: { initialCadets: UserProfile
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingCadet, setEditingCadet] = useState<UserProfile | null>(null);
+  const [editFormErrors, setEditFormErrors] = useState<Record<string, string[] | undefined>>({});
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletingCadet, setDeletingCadet] = useState<UserProfile | null>(null);
   const { toast } = useToast();
 
   const handleEditClick = (cadet: UserProfile) => {
     setEditingCadet({ ...cadet });
+    setEditFormErrors({});
     setIsEditDialogOpen(true);
   }
 
@@ -54,17 +56,20 @@ export function CadetsClientPage({ initialCadets }: { initialCadets: UserProfile
 
   const handleSave = async () => {
     if (!editingCadet) return;
+    setEditFormErrors({});
 
     const result = await updateCadet(editingCadet);
     if (result.success) {
       setCadets(currentCadets => currentCadets.map(c => c.uid === editingCadet.uid ? editingCadet : c));
       toast({ title: "Success", description: "Cadet details updated." });
+      setIsEditDialogOpen(false);
+      setEditingCadet(null);
     } else {
-       toast({ variant: 'destructive', title: "Error", description: result.message });
+      if (result.errors) {
+        setEditFormErrors(result.errors);
+      }
+      toast({ variant: 'destructive', title: "Error", description: result.message });
     }
-
-    setIsEditDialogOpen(false);
-    setEditingCadet(null);
   }
 
   const filteredCadets = cadets.filter(cadet => 
@@ -169,25 +174,31 @@ export function CadetsClientPage({ initialCadets }: { initialCadets: UserProfile
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">Name</Label>
-                        <Input id="name" value={editingCadet.name} onChange={(e) => setEditingCadet({...editingCadet, name: e.target.value})} className="col-span-3" />
+                    <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="name-edit" className="text-right pt-2">Name</Label>
+                        <div className="col-span-3">
+                          <Input id="name-edit" value={editingCadet.name} onChange={(e) => setEditingCadet({...editingCadet, name: e.target.value})} />
+                          {editFormErrors?.name && <p className="text-sm text-destructive mt-1">{editFormErrors.name[0]}</p>}
+                        </div>
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="email" className="text-right">Email</Label>
-                        <Input id="email" value={editingCadet.email} disabled className="col-span-3" />
+                     <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="email-edit" className="text-right pt-2">Email</Label>
+                        <div className="col-span-3">
+                          <Input id="email-edit" value={editingCadet.email} disabled />
+                        </div>
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="regimentalNumber" className="text-right">
+                     <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="regimentalNumber-edit" className="text-right pt-2">
                             Regimental No.
                         </Label>
                         <div className="col-span-3">
                             <Input 
-                                id="regimentalNumber" 
+                                id="regimentalNumber-edit" 
                                 value={editingCadet.regimentalNumber} 
                                 onChange={(e) => setEditingCadet({...editingCadet, regimentalNumber: e.target.value})}
                                 disabled={(editingCadet.regimentalNumberEditCount ?? 0) >= 2}
                             />
+                            {editFormErrors?.regimentalNumber && <p className="text-sm text-destructive mt-1">{editFormErrors.regimentalNumber[0]}</p>}
                             <p className="text-xs text-muted-foreground mt-1">
                                 {(editingCadet.regimentalNumberEditCount ?? 0) < 2
                                 ? `${2 - (editingCadet.regimentalNumberEditCount ?? 0)} edits remaining.`
@@ -195,12 +206,15 @@ export function CadetsClientPage({ initialCadets }: { initialCadets: UserProfile
                             </p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="rank" className="text-right">Rank</Label>
-                        <Input id="rank" value={editingCadet.rank} onChange={(e) => setEditingCadet({...editingCadet, rank: e.target.value})} className="col-span-3" />
+                    <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="rank-edit" className="text-right pt-2">Rank</Label>
+                         <div className="col-span-3">
+                            <Input id="rank-edit" value={editingCadet.rank} onChange={(e) => setEditingCadet({...editingCadet, rank: e.target.value})} />
+                             {editFormErrors?.rank && <p className="text-sm text-destructive mt-1">{editFormErrors.rank[0]}</p>}
+                        </div>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="year" className="text-right">Year</Label>
+                    <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="year-edit" className="text-right pt-2">Year</Label>
                         <div className="col-span-3">
                             <Select 
                                 value={editingCadet.year?.toString()} 
@@ -215,11 +229,15 @@ export function CadetsClientPage({ initialCadets }: { initialCadets: UserProfile
                                     <SelectItem value="3">3rd Year</SelectItem>
                                 </SelectContent>
                             </Select>
+                             {editFormErrors?.year && <p className="text-sm text-destructive mt-1">{editFormErrors.year[0]}</p>}
                         </div>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="phone" className="text-right">Phone</Label>
-                        <Input id="phone" value={editingCadet.phone} onChange={(e) => setEditingCadet({...editingCadet, phone: e.target.value})} className="col-span-3" />
+                    <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="phone-edit" className="text-right pt-2">Phone</Label>
+                        <div className="col-span-3">
+                          <Input id="phone-edit" value={editingCadet.phone} onChange={(e) => setEditingCadet({...editingCadet, phone: e.target.value})} />
+                          {editFormErrors?.phone && <p className="text-sm text-destructive mt-1">{editFormErrors.phone[0]}</p>}
+                        </div>
                     </div>
                 </div>
                 <DialogFooter>

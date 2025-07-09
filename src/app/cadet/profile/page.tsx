@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,22 +24,27 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<Partial<UserProfile>>(user || {});
   const [initialData, setInitialData] = useState<Partial<UserProfile>>(user || {});
+  const [formErrors, setFormErrors] = useState<Record<string, string[] | undefined>>({});
   const { toast } = useToast();
 
-  useState(() => {
+  useEffect(() => {
     if (user) {
       setProfile(user);
       setInitialData(user);
     }
-  });
+  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setProfile((prev) => ({ ...prev, [id]: value }));
+    if (formErrors[id]) {
+      setFormErrors((prev) => ({ ...prev, [id]: undefined }));
+    }
   };
   
   const handleSave = async () => {
     if (!profile.uid) return;
+    setFormErrors({});
 
     const result = await updateUserProfile(profile as UserProfile);
 
@@ -48,12 +53,16 @@ export default function ProfilePage() {
       await refreshUser(); // Refreshes user data from provider
       setIsEditing(false);
     } else {
+      if (result.errors) {
+        setFormErrors(result.errors);
+      }
       toast({ variant: 'destructive', title: "Error", description: result.message });
     }
   };
   
   const handleCancel = () => {
     setProfile(initialData);
+    setFormErrors({});
     setIsEditing(false);
   };
 
@@ -82,6 +91,7 @@ export default function ProfilePage() {
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
             <Input id="name" value={profile.name || ''} onChange={handleInputChange} disabled={!isEditing} />
+            {formErrors.name && <p className="text-sm text-destructive mt-1">{formErrors.name[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
@@ -103,18 +113,22 @@ export default function ProfilePage() {
           <div className="space-y-2">
             <Label htmlFor="rank">Rank</Label>
             <Input id="rank" value={profile.rank || ''} onChange={handleInputChange} disabled={!isEditing} />
+            {formErrors.rank && <p className="text-sm text-destructive mt-1">{formErrors.rank[0]}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="unit">Unit</Label>
             <Input id="unit" value={profile.unit || ''} onChange={handleInputChange} disabled={!isEditing} />
+            {formErrors.unit && <p className="text-sm text-destructive mt-1">{formErrors.unit[0]}</p>}
           </div>
            <div className="space-y-2">
             <Label htmlFor="phone">Phone</Label>
             <Input id="phone" value={profile.phone || ''} onChange={handleInputChange} disabled={!isEditing} />
+            {formErrors.phone && <p className="text-sm text-destructive mt-1">{formErrors.phone[0]}</p>}
           </div>
            <div className="space-y-2">
             <Label htmlFor="whatsapp">WhatsApp</Label>
             <Input id="whatsapp" value={profile.whatsapp || ''} onChange={handleInputChange} disabled={!isEditing} />
+            {formErrors.whatsapp && <p className="text-sm text-destructive mt-1">{formErrors.whatsapp[0]}</p>}
           </div>
         </form>
       </CardContent>
