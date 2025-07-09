@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   SidebarProvider,
@@ -25,6 +25,7 @@ export default function AuthenticatedLayout({
   role: UserRole;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = React.useState(true);
   const { user, loading } = useAuth();
   
@@ -40,19 +41,25 @@ export default function AuthenticatedLayout({
   }
   
   if (!user || user.role !== role) {
+    // Instead of showing "Access Denied", we redirect to the homepage.
+    // This handles the logout case more gracefully.
+    // The useEffect ensures this runs on the client after mount.
+    React.useEffect(() => {
+      router.push('/');
+    }, [router]);
+
+    // Show a loader while redirecting.
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background/90 p-4">
              <Card className="w-full max-w-md text-center shadow-2xl">
                 <CardHeader>
                     <CardTitle className="text-2xl text-destructive">Access Denied</CardTitle>
                     <CardDescription>
-                        You do not have permission to view this page or your session has expired.
+                       You do not have permission to view this page. Redirecting...
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Link href="/" passHref>
-                        <Button>Return to Home</Button>
-                    </Link>
+                   <Loader2 className="h-8 w-8 animate-spin mx-auto" />
                 </CardContent>
             </Card>
         </div>
