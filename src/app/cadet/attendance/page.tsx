@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -15,14 +18,33 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import type { AttendanceRecord } from "@/lib/types";
-import { getCurrentUser } from "@/lib/auth";
+import type { CadetAttendanceRecord } from "@/lib/types";
+import { useAuth } from "@/components/providers/auth-provider";
 import { getCadetAttendance } from "@/lib/actions/attendance.actions";
+import { Loader2 } from "lucide-react";
 
-export default async function AttendancePage() {
-  const user = await getCurrentUser();
-  const attendanceRecords = user ? await getCadetAttendance(user.uid) : [];
+export default function AttendancePage() {
+  const { user } = useAuth();
+  const [attendanceRecords, setAttendanceRecords] = useState<CadetAttendanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    async function fetchAttendance() {
+      if (user) {
+        setLoading(true);
+        const records = await getCadetAttendance(user.uid);
+        setAttendanceRecords(records);
+        setLoading(false);
+      }
+    }
+    fetchAttendance();
+  }, [user]);
+
+  if (!user) {
+    // The AuthenticatedLayout will show a loader or access denied message.
+    return null;
+  }
+  
   return (
     <Card>
       <CardHeader>
@@ -42,25 +64,42 @@ export default async function AttendancePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {attendanceRecords.map((record) => (
-                <TableRow key={record.id}>
-                  <TableCell className="font-medium">{record.eventName}</TableCell>
-                  <TableCell>{format(new Date(record.date), "dd MMMM yyyy")}</TableCell>
-                  <TableCell className="text-right">
-                    <Badge
-                      variant={
-                        record.status === "Present"
-                          ? "default"
-                          : record.status === "Absent"
-                          ? "destructive"
-                          : "secondary"
-                      }
-                    >
-                      {record.status}
-                    </Badge>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="h-24 text-center">
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                      Loading your attendance records...
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : attendanceRecords.length > 0 ? (
+                attendanceRecords.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell className="font-medium">{record.eventName}</TableCell>
+                    <TableCell>{format(new Date(record.date), "dd MMMM yyyy")}</TableCell>
+                    <TableCell className="text-right">
+                      <Badge
+                        variant={
+                          record.status === "Present"
+                            ? "default"
+                            : record.status === "Absent"
+                            ? "destructive"
+                            : "secondary"
+                        }
+                      >
+                        {record.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                 <TableRow>
+                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                        No attendance records found.
+                    </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>

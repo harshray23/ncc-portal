@@ -68,3 +68,11 @@ export interface AppNotification {
     timestamp: string;
     href?: string;
 }
+
+export interface CadetAttendanceRecord {
+  id: string;
+  eventName: string;
+  date: string;
+  status: 'Present' | 'Absent' | 'Late';
+  remarks?: string;
+}

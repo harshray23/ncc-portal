@@ -1,7 +1,7 @@
 'use server';
 
 import { getFirebaseAdmin } from '../firebase-admin';
-import type { UserProfile, AttendanceData, AttendanceRecord } from '../types';
+import type { UserProfile, AttendanceData, AttendanceRecord, CadetAttendanceRecord } from '../types';
 
 export async function getAttendanceData(date: Date): Promise<AttendanceData> {
     const admin = getFirebaseAdmin();
@@ -62,12 +62,12 @@ export async function saveAttendance(date: Date, records: AttendanceData['record
     }
 }
 
-export async function getCadetAttendance(cadetId: string): Promise<Omit<AttendanceRecord, 'records'>[]> {
+export async function getCadetAttendance(cadetId: string): Promise<CadetAttendanceRecord[]> {
     try {
         const admin = getFirebaseAdmin();
-        const snapshot = await admin.firestore().collection('attendance').get();
+        const snapshot = await admin.firestore().collection('attendance').orderBy('date', 'desc').get();
 
-        const results: any[] = [];
+        const results: CadetAttendanceRecord[] = [];
         snapshot.forEach(doc => {
             const data = doc.data() as any; // Firestore data
             const cadetRecord = data.records[cadetId];
