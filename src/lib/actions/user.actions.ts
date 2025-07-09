@@ -4,6 +4,8 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getFirebaseAdmin } from "@/lib/firebase-admin";
 import type { UserProfile } from "../types";
+import { getCurrentUser } from "../auth";
+import { logActivity } from "./activity.actions";
 
 const addCadetSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -33,6 +35,11 @@ export async function addCadet(prevState: any, formData: FormData) {
   const { email, regimentalNumber, name } = validatedFields.data;
 
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      return { type: 'error', message: 'Permission denied.' };
+    }
+
     const admin = getFirebaseAdmin();
     const existingEmail = await admin.auth().getUserByEmail(email).catch(() => null);
     if (existingEmail) {
@@ -66,7 +73,15 @@ export async function addCadet(prevState: any, formData: FormData) {
 
     await cadetsRef.doc(userRecord.uid).set(newCadetData);
     
+    await logActivity('New User', {
+        userId: currentUser.uid,
+        user: currentUser.name,
+        role: currentUser.role,
+        details: `Added new cadet: ${validatedFields.data.name} (${validatedFields.data.email}).`
+    });
+
     revalidatePath('/admin/manage-cadets');
+    revalidatePath('/manager/activity');
 
     return { type: "success", message: "Cadet added successfully." };
 
@@ -106,9 +121,17 @@ export async function updateUserProfile(profileData: UserProfile): Promise<{ suc
     const docRef = admin.firestore().collection(collectionName).doc(uid);
     
     await docRef.update({ ...dataToUpdate, createdAt: new Date(dataToUpdate.createdAt) });
+    
+    await logActivity('Profile Update', {
+        userId: profileData.uid,
+        user: profileData.name,
+        role: profileData.role,
+        details: `Updated their own profile.`
+    });
 
     revalidatePath(`/${role}/profile`);
     revalidatePath(`/${role}/dashboard`);
+    revalidatePath('/manager/activity');
 
     return { success: true };
   } catch (error: any) {
@@ -156,14 +179,30 @@ export async function updateCadet(cadetData: UserProfile): Promise<{ success: bo
 
 export async function deleteCadet(uid: string): Promise<{ success: boolean; message?: string }> {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+        return { success: false, message: 'Permission denied.' };
+    }
+    
     const admin = getFirebaseAdmin();
     
+    const cadetDoc = await admin.firestore().collection('cadets').doc(uid).get();
+    const cadetName = cadetDoc.data()?.name || `UID: ${uid}`;
+
     // Delete from Firestore
     await admin.firestore().collection('cadets').doc(uid).delete();
     // Delete from Firebase Auth
     await admin.auth().deleteUser(uid);
     
+    await logActivity('Staff Delete', {
+        userId: currentUser.uid,
+        user: currentUser.name,
+        role: currentUser.role,
+        details: `Deleted cadet account: ${cadetName}`
+    });
+
     revalidatePath('/admin/manage-cadets');
+    revalidatePath('/manager/activity');
     return { success: true };
   } catch (error: any) {
     console.error("Failed to delete cadet:", error);
@@ -173,6 +212,11 @@ export async function deleteCadet(uid: string): Promise<{ success: boolean; mess
 
 export async function updateCadetYears(uids: string[], year: number): Promise<{ success: boolean; message?: string }> {
     try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser || currentUser.role !== 'admin') {
+            return { success: false, message: 'Permission denied.' };
+        }
+
         const admin = getFirebaseAdmin();
         const batch = admin.firestore().batch();
         const usersRef = admin.firestore().collection('cadets');
@@ -181,7 +225,15 @@ export async function updateCadetYears(uids: string[], year: number): Promise<{ 
         });
         await batch.commit();
         
+        await logActivity('Year Update', {
+            userId: currentUser.uid,
+            user: currentUser.name,
+            role: currentUser.role,
+            details: `Updated year for ${uids.length} cadet(s) to year ${year}.`
+        });
+
         revalidatePath('/admin/manage-year');
+        revalidatePath('/manager/activity');
         return { success: true };
     } catch (error: any) {
         console.error("Failed to update cadet years:", error);

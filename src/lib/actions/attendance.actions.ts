@@ -2,6 +2,9 @@
 
 import { getFirebaseAdmin } from '../firebase-admin';
 import type { UserProfile, AttendanceData, AttendanceRecord, CadetAttendanceRecord } from '../types';
+import { getCurrentUser } from '../auth';
+import { logActivity } from './activity.actions';
+import { revalidatePath } from 'next/cache';
 
 export async function getAttendanceData(date: Date): Promise<AttendanceData> {
     const admin = getFirebaseAdmin();
@@ -38,6 +41,11 @@ export async function getAttendanceData(date: Date): Promise<AttendanceData> {
 
 export async function saveAttendance(date: Date, records: AttendanceData['records']) {
     try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser || currentUser.role !== 'admin') {
+            return { success: false, message: 'Permission denied.' };
+        }
+
         const admin = getFirebaseAdmin();
         const dateString = date.toISOString().split('T')[0];
         
@@ -56,6 +64,15 @@ export async function saveAttendance(date: Date, records: AttendanceData['record
         }
         
         await admin.firestore().collection('attendance').doc(dateString).set(dataToSave, { merge: true });
+
+        await logActivity('Attendance Update', {
+            userId: currentUser.uid,
+            user: currentUser.name,
+            role: currentUser.role,
+            details: `Updated attendance for ${date.toISOString().split('T')[0]}.`
+        });
+        
+        revalidatePath('/manager/activity');
         return { success: true };
     } catch (error: any) {
         return { success: false, message: error.message };

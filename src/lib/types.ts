@@ -76,3 +76,15 @@ export interface CadetAttendanceRecord {
   status: 'Present' | 'Absent' | 'Late';
   remarks?: string;
 }
+
+export type AuditLogType = 'Login' | 'Approval' | 'Registration' | 'Profile Update' | 'Data Import' | 'Report Download' | 'New User' | 'Camp Create' | 'Camp Delete' | 'Attendance Update' | 'Year Update' | 'Staff Add' | 'Staff Delete';
+
+export interface AuditLog {
+  id: string;
+  timestamp: string; // ISO string
+  user: string;
+  userId: string;
+  role: UserRole;
+  type: AuditLogType;
+  details: string;
+}

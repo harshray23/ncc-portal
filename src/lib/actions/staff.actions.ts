@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import type { FirebaseFirestore } from 'firebase-admin/firestore';
 import { getFirebaseAdmin } from "@/lib/firebase-admin";
 import type { UserProfile } from "../types";
+import { getCurrentUser } from "../auth";
+import { logActivity } from "./activity.actions";
 
 // Schema for adding staff
 const addStaffSchema = z.object({
@@ -32,6 +34,11 @@ export async function addStaff(prevState: any, formData: FormData) {
   const { email, name, role, rank, unit } = validatedFields.data;
 
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== 'manager') {
+      return { type: 'error', message: 'Permission denied. Only managers can add staff.' };
+    }
+
     const admin = getFirebaseAdmin();
     const existingUser = await admin.auth().getUserByEmail(email).catch(() => null);
     if (existingUser) {
@@ -61,7 +68,15 @@ export async function addStaff(prevState: any, formData: FormData) {
 
     await admin.firestore().collection(collectionName).doc(userRecord.uid).set(newStaffData);
 
+    await logActivity('Staff Add', {
+        userId: currentUser.uid,
+        user: currentUser.name,
+        role: currentUser.role,
+        details: `Added new staff member: ${name} (${email}) with role ${role}.`
+    });
+
     revalidatePath('/manager/manage-staff');
+    revalidatePath('/manager/activity');
 
     return { type: "success", message: `${role.charAt(0).toUpperCase() + role.slice(1)} added successfully.` };
 
@@ -116,15 +131,31 @@ export async function getStaff(): Promise<{ admins: UserProfile[], managers: Use
 
 export async function deleteStaff(uid: string, role: 'admin' | 'manager'): Promise<{ success: boolean; message?: string }> {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== 'manager') {
+        return { success: false, message: 'Permission denied.' };
+    }
+
     const admin = getFirebaseAdmin();
     const collectionName = `${role}s`;
     
+    const staffDoc = await admin.firestore().collection(collectionName).doc(uid).get();
+    const staffName = staffDoc.data()?.name || `UID: ${uid}`;
+
     // Delete from Firestore
     await admin.firestore().collection(collectionName).doc(uid).delete();
     // Delete from Firebase Auth
     await admin.auth().deleteUser(uid);
     
+    await logActivity('Staff Delete', {
+        userId: currentUser.uid,
+        user: currentUser.name,
+        role: currentUser.role,
+        details: `Deleted staff account for ${staffName} (role: ${role}).`
+    });
+
     revalidatePath('/manager/manage-staff');
+    revalidatePath('/manager/activity');
     return { success: true };
   } catch (error: any) {
     console.error(`Failed to delete ${role}:`, error);

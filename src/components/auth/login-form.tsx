@@ -22,6 +22,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { getFirebase } from "@/lib/firebase";
 import { getEmailForRegimentalNumber } from "@/lib/actions/auth.actions";
+import { logLoginAction } from "@/lib/actions/activity.actions";
+import type { UserRole } from "@/lib/types";
 
 const formSchema = z.object({
   identifier: z.string().min(1, { message: "This field is required." }),
@@ -68,7 +70,8 @@ function LoginFormComponent() {
       const userCredential = await signInWithEmailAndPassword(auth, emailToLogin, password);
       // Force refresh of the token to get latest custom claims.
       const token = await userCredential.user.getIdTokenResult(true);
-      const userRole = token.claims.role;
+      const userRole = token.claims.role as UserRole;
+      const userName = userCredential.user.displayName || emailToLogin;
 
       let path = "/";
       if (userRole === 'admin') {
@@ -82,6 +85,8 @@ function LoginFormComponent() {
         throw new Error("Your account does not have a role assigned. Please contact an administrator.");
       }
       
+      await logLoginAction({ userId: userCredential.user.uid, user: userName, role: userRole });
+
       toast({ title: "Login Successful", description: "Redirecting..." });
       router.push(path);
       router.refresh(); // Refresh server components

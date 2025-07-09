@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { getFirebaseAdmin } from '../firebase-admin';
 import type { Camp, CampRegistration, UserProfile } from '../types';
 import { revalidatePath } from 'next/cache';
+import { getCurrentUser } from '../auth';
+import { logActivity } from './activity.actions';
 
 const campSchema = z.object({
   name: z.string().min(1, 'Camp name is required.'),
@@ -38,13 +40,27 @@ export async function createCamp(prevState: any, formData: FormData) {
     }
 
     try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser || currentUser.role !== 'admin') {
+            return { type: 'error', message: 'Permission denied.' };
+        }
+
         const admin = getFirebaseAdmin();
-        await admin.firestore().collection('camps').add({
+        const docRef = await admin.firestore().collection('camps').add({
             ...validatedFields.data,
             status: 'Upcoming',
             createdAt: new Date(),
         });
+        
+        await logActivity('Camp Create', {
+            userId: currentUser.uid,
+            user: currentUser.name,
+            role: currentUser.role,
+            details: `Created new camp: "${validatedFields.data.name}" (ID: ${docRef.id})`
+        });
+
         revalidatePath('/admin/manage-camps');
+        revalidatePath('/manager/activity');
         return { type: 'success' };
     } catch (error: any) {
         return { type: 'error', message: error.message };
@@ -90,9 +106,17 @@ export async function getCampDetails(campId: string) {
 
 export async function updateRegistrationStatus(registrationId: string, status: 'Accepted' | 'Rejected', campId: string): Promise<{success: boolean, message?: string}> {
     try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser || currentUser.role !== 'admin') {
+            return { success: false, message: 'Permission denied.' };
+        }
+
         const admin = getFirebaseAdmin();
         const regRef = admin.firestore().collection('registrations').doc(registrationId);
         
+        let regData: CampRegistration;
+        let campName: string;
+
         await admin.firestore().runTransaction(async (transaction) => {
             const regDoc = await transaction.get(regRef);
             if (!regDoc.exists) {
@@ -100,9 +124,9 @@ export async function updateRegistrationStatus(registrationId: string, status: '
             }
             transaction.update(regRef, { status });
 
-            const regData = regDoc.data() as CampRegistration;
+            regData = regDoc.data() as CampRegistration;
             const campDoc = await transaction.get(admin.firestore().collection('camps').doc(campId));
-            const campName = campDoc.data()?.name || "a camp";
+            campName = campDoc.data()?.name || "a camp";
 
             const message = status === 'Accepted'
                 ? `Congratulations! You have been selected for the ${campName}.`
@@ -117,9 +141,17 @@ export async function updateRegistrationStatus(registrationId: string, status: '
                 href: '/cadet/camps'
             });
         });
+
+        await logActivity('Approval', {
+            userId: currentUser.uid,
+            user: currentUser.name,
+            role: currentUser.role,
+            details: `${status} registration for ${regData!.cadetName} for camp "${campName!}".`
+        });
         
         revalidatePath(`/admin/manage-camps/${campId}`);
         revalidatePath('/cadet/dashboard'); // For the user's notifications
+        revalidatePath('/manager/activity');
         return { success: true };
     } catch (error: any) {
         console.error("Failed to update registration:", error);
@@ -129,7 +161,15 @@ export async function updateRegistrationStatus(registrationId: string, status: '
 
 export async function deleteCamp(campId: string): Promise<{success: boolean, message?: string}> {
      try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser || currentUser.role !== 'admin') {
+            return { success: false, message: 'Permission denied.' };
+        }
+
         const admin = getFirebaseAdmin();
+        const campDoc = await admin.firestore().collection('camps').doc(campId).get();
+        const campName = campDoc.data()?.name || `ID: ${campId}`;
+
         await admin.firestore().collection('camps').doc(campId).delete();
         // Also delete associated registrations
         const regSnapshot = await admin.firestore().collection('registrations').where('campId', '==', campId).get();
@@ -137,7 +177,15 @@ export async function deleteCamp(campId: string): Promise<{success: boolean, mes
         regSnapshot.docs.forEach(doc => batch.delete(doc.ref));
         await batch.commit();
 
+        await logActivity('Camp Delete', {
+            userId: currentUser.uid,
+            user: currentUser.name,
+            role: currentUser.role,
+            details: `Deleted camp: "${campName}"`
+        });
+
         revalidatePath('/admin/manage-camps');
+        revalidatePath('/manager/activity');
         return { success: true };
     } catch (error: any) {
         console.error("Failed to delete camp:", error);
@@ -184,7 +232,19 @@ export async function registerForCamp(campId: string, user: UserProfile) {
             ...registrationData,
             registeredAt: new Date(),
         });
+        
+        const campDoc = await admin.firestore().collection('camps').doc(campId).get();
+        const campName = campDoc.data()?.name || `ID: ${campId}`;
+
+        await logActivity('Registration', {
+            userId: user.uid,
+            user: user.name,
+            role: user.role,
+            details: `Registered for camp: "${campName}"`
+        });
+
         revalidatePath('/cadet/camps');
+        revalidatePath('/manager/activity');
         return { success: true };
     } catch (error: any) {
         return { success: false, message: error.message };
