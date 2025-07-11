@@ -31,7 +31,7 @@ export default function PortalSelectionPage() {
             <div className="flex flex-col justify-center items-center min-h-screen bg-background text-foreground">
                 <div className="flex flex-col items-center gap-8 animate-pulse">
                     <Image src="/emblem.avif" alt="NCC Emblem" width={120} height={120} priority />
-                    <Image src="/ncc.png" alt="NCC Logo" width={120} height={120} className="rounded-md" priority/>
+                    <Image src="/ncc.png" alt="NCC Logo" width={120} height={120} className="rounded-md" />
                     <h1 className="text-3xl font-bold text-primary tracking-wider text-center">
                         10 Bengal Battalion<br />-- NCC --
                     </h1>
