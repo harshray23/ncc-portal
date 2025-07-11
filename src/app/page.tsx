@@ -1,4 +1,7 @@
 
+"use client";
+
+import { useState, useEffect } from "react";
 import { Shield, User, Briefcase } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,6 +16,30 @@ import { Button } from "@/components/ui/button";
 
 
 export default function PortalSelectionPage() {
+    const [showSplash, setShowSplash] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowSplash(false);
+        }, 3500); // Splash screen duration
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (showSplash) {
+        return (
+            <div className="flex flex-col justify-center items-center min-h-screen bg-background text-foreground">
+                <div className="flex flex-col items-center gap-8 animate-pulse">
+                    <Image src="/emblem.avif" alt="NCC Emblem" width={120} height={120} priority />
+                    <Image src="/ncc.png" alt="NCC Logo" width={120} height={120} className="rounded-md" priority/>
+                    <h1 className="text-3xl font-bold text-primary tracking-wider text-center">
+                        10 Bengal Battalion<br />-- NCC --
+                    </h1>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-cover bg-center">
             <header className="py-4 bg-black/20 backdrop-blur-sm">
